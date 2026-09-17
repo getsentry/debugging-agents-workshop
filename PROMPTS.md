@@ -25,7 +25,9 @@ in my organization. I need:
 with inputs and outputs recorded, so I can read the prompt, the tool
 calls, the tool results, and the token usage per step.
 - The conversation id from the chat request body set on every span in the
-request, and the demo user from `lib/demo-user.ts` set as the Sentry user.
+request, and the demo user from `lib/demo-user.ts` set as the Sentry user
+on the server and in the browser, so traces, errors, and replays all carry
+it.
 - Database spans for the Postgres queries in `lib/db`.
 - Session replay in the browser, so a failed chat turn links to what the
 user saw.

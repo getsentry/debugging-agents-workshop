@@ -58,8 +58,9 @@ index 0000000..0000000
 new file mode 100644
 --- /dev/null
 +++ b/apps/storefront/instrumentation-client.ts
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,15 @@
 +import * as Sentry from "@sentry/nextjs";
++import { DEMO_USER } from "lib/demo-user";
 +
 +Sentry.init({
 +  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -67,6 +68,9 @@ new file mode 100644
 +  replaysSessionSampleRate: 1,
 +  integrations: [Sentry.replayIntegration()],
 +});
++
++// The store has no sign-in; a real app calls setUser after the user signs in.
++Sentry.setUser({ ...DEMO_USER });
 +
 +// Instruments App Router navigations so client traces connect to server ones.
 +export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
