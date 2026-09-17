@@ -8,12 +8,8 @@ step runs, during the introduction.
 | Service | Why | Cost |
 | --- | --- | --- |
 | [Sentry](https://sentry.io/signup/) | Where the traces, issues, dashboards, and alerts live | Free plan |
-| [Mistral](https://console.mistral.ai/) | The model behind all three agents | Free Experiment plan |
+| OpenRouter | The model behind all three agents | The presenter shares one at the start; no account needed |
 | [GitHub](https://github.com/signup) | Lab 5 runs an agent in GitHub Actions on your own repo | Free |
-
-Mistral: after signup, open Billing and activate the **Experiment** plan.
-Without this step the API key returns an authentication error. Then create an
-API key under API Keys.
 
 Sentry: create one organization. Do not create projects yet. Your coding agent
 creates them in Lab 2.
@@ -52,7 +48,7 @@ The script:
    lives for 72 hours. To keep it in a free Neon account, run
    `npx neon@latest claim accept` from `apps/storefront` before it expires.
 4. Seeds the catalog, customers, orders, and payments.
-5. Asks for your Mistral API key.
+5. Asks for the OpenRouter API key.
 
 Then:
 
@@ -71,6 +67,7 @@ you are ready.
   from `apps/storefront`, then run `./scripts/setup.sh` again. The script
   skips the Neon step when `DATABASE_URL` is already set. Older packages
   named `neondb` and `neon-new` are deprecated; do not use them.
-- Mistral returns 401: the Experiment plan is not active. See step 1.
+- OpenRouter returns 401: the key is wrong or was rotated; ask the presenter
+  for the current one.
 - The chat replies but shows no cards: check the terminal for a database
   error and rerun `npm run db:seed`.

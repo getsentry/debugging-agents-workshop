@@ -1,0 +1,21 @@
+diff --git a/app/api/chat/route.ts b/app/api/chat/route.ts
+index d95d031..9ec1a4b 100644
+--- a/app/api/chat/route.ts
++++ b/app/api/chat/route.ts
+@@ -6,7 +6,7 @@ import {
+   streamText,
+   toUIMessageStream,
+ } from "ai";
+-import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
++import { STORE_POLICIES } from "lib/ai/instructions";
+ import { resolveModel } from "lib/ai/models";
+ import { createTools, type AssistantUIMessage } from "lib/ai/tools";
+ import { DEMO_USER } from "lib/demo-user";
+@@ -37,7 +37,6 @@ export async function POST(req: Request) {
+     instructions: {
+       role: "system",
+       content: `${assistantInstructions}\n\n${STORE_POLICIES}`,
+-      providerOptions: PROMPT_CACHE_OPTIONS,
+     },
+     messages: await convertToModelMessages(messages),
+     tools: createTools(DEMO_USER.id, id),

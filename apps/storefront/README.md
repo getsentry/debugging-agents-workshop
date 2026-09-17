@@ -16,8 +16,9 @@ Built on the [Next.js Commerce](https://github.com/vercel/commerce) template
   `lib/db/schema.ts` defines the tables; `scripts/db-seed.ts` seeds them from
   the fixed catalog in `lib/db/data.ts`.
 - **Assistant** — a slide-over chat panel (AI Elements + `useChat`) streaming
-  from `app/api/chat`, which runs `streamText` against Mistral with four
-  tools: `searchProducts`, `getProduct`, `getAccountInfo`, and `refundOrder`.
+  from `app/api/chat`, which runs `streamText` against Claude Sonnet 5
+  through OpenRouter with four tools: `searchProducts`, `getProduct`,
+  `getAccountInfo`, and `refundOrder`.
   Tool results render as **generative UI** — product cards and an account
   card. The store has no sign-in; `lib/demo-user` is the one shopper.
 - **The planted bug** — `refundOrder` calls `selectPayment` in
@@ -35,12 +36,12 @@ Requires Node.js >= 22. From the repo root:
 ```
 
 This installs dependencies, provisions a free Postgres database on Neon (or
-reuses `DATABASE_URL` if already set), seeds it, and asks for a Mistral API
-key. By hand instead:
+reuses `DATABASE_URL` if already set), seeds it, and asks for an OpenRouter
+API key. By hand instead:
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in DATABASE_URL and MISTRAL_API_KEY
+cp .env.example .env.local   # fill in DATABASE_URL and OPENROUTER_API_KEY
 npm run db:seed
 ```
 

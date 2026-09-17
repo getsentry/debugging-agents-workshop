@@ -69,8 +69,8 @@ You must see one trace for the message with the model call and the
 ## Step 3. Ship the regression
 
 The presenter tags a release and applies
-`apps/slack-agent/regressions/drop-cache-key.patch`, then restarts the bot and
-sends three more messages in the same thread.
+`apps/slack-agent/regressions/drop-prompt-cache.patch`, then restarts the bot
+and sends three more messages in the same thread.
 
 Ask:
 
@@ -78,8 +78,10 @@ Ask:
 > the slack-agent project.
 
 Before the patch, the second and later turns in a thread show cached input
-tokens. After it, they show zero. The cost per conversation rises about three
-times. This is the regression from the talk, now in your own project.
+tokens. After it, they show zero, because the patch removes the cache
+breakpoint on the system prompt: Anthropic no longer has anything to match
+against. The cost per conversation rises several times. This is the
+regression from the talk, now in your own project.
 
 ## What you learned
 

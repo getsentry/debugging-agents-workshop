@@ -11,7 +11,7 @@
     "manifest:link": "node scripts/manifest-link.mjs"
   },
   "dependencies": {
-    "@ai-sdk/mistral": "4.0.30",
+    "@openrouter/ai-sdk-provider": "3.0.0",
     "@slack/bolt": "^4.4.0",
     "ai": "7.0.64",
     "dotenv": "17.4.2",

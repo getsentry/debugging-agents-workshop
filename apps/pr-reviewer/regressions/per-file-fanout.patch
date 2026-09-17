@@ -1,15 +1,17 @@
---- a/src/agents/review.ts	2026-09-17 11:19:00
-+++ b/src/agents/review.ts	2026-09-17 11:19:07
-@@ -31,7 +31,7 @@
+diff --git a/src/agents/review.ts b/src/agents/review.ts
+index fbb439f..2f69a9b 100644
+--- a/src/agents/review.ts
++++ b/src/agents/review.ts
+@@ -31,7 +31,7 @@ export function ReviewLead() {
  
  	useSubagent({
  		name: 'correctness-reviewer',
 -		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions.',
 +		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions. Reviews a single file in the context of the whole diff.',
  		agent: CorrectnessReviewer,
- 		model: 'mistral/mistral-small-latest',
+ 		model: 'openrouter/anthropic/claude-haiku-4.5',
  	});
-@@ -94,9 +94,9 @@
+@@ -94,9 +94,9 @@ export function ReviewLead() {
  	return `You are the lead reviewer of a pull request. Work through these steps in order:
  
  1. Load the diff with the read_diff tool, using the file path given in the user message.

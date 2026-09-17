@@ -6,7 +6,8 @@
 `apps/pr-reviewer` is a Flue agent that runs in GitHub Actions on every pull
 request. A lead agent reads the diff, sends it to two subagents, one for
 correctness and one for style, merges their findings, and posts one comment
-on the pull request. It runs on Mistral and has no Sentry.
+on the pull request. It runs on Claude Haiku 4.5 through OpenRouter and has
+no Sentry.
 
 What changes compared with the storefront and Slack:
 

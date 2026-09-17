@@ -18,7 +18,8 @@ message, so follow-ups like "refund that order" work.
    `connections:write` scope.
 5. Copy `.env.example` to `.env.local`. Fill in `SLACK_BOT_TOKEN` (from OAuth
    & Permissions) and `SLACK_APP_TOKEN` (the token from step 4), plus
-   `MISTRAL_API_KEY` and the `DATABASE_URL` from `apps/storefront/.env.local`.
+   `OPENROUTER_API_KEY` and the `DATABASE_URL` from
+   `apps/storefront/.env.local`.
 6. `npm install`
 7. `npm run dev`
 8. DM the bot: "show me the shoes collection".

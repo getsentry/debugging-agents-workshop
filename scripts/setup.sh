@@ -34,12 +34,12 @@ fi
 echo "==> Seeding the database"
 npm run db:seed
 
-echo "==> Checking for MISTRAL_API_KEY"
-if ! grep -q '^MISTRAL_API_KEY=.\+' .env.local 2>/dev/null; then
-  read -r -p "Enter your Mistral API key (https://console.mistral.ai/api-keys): " MISTRAL_KEY
-  echo "MISTRAL_API_KEY=${MISTRAL_KEY}" >>.env.local
+echo "==> Checking for OPENROUTER_API_KEY"
+if ! grep -q '^OPENROUTER_API_KEY=.\+' .env.local 2>/dev/null; then
+  read -r -p "Enter the OpenRouter API key from the presenter: " OPENROUTER_KEY
+  echo "OPENROUTER_API_KEY=${OPENROUTER_KEY}" >>.env.local
 else
-  echo "==> MISTRAL_API_KEY already set, skipping"
+  echo "==> OPENROUTER_API_KEY already set, skipping"
 fi
 
 echo "==> SENTRY_DSN is not needed yet; the labs add it later"

@@ -1,11 +1,11 @@
 diff --git a/apps/slack-agent/.env.example b/apps/slack-agent/.env.example
-index a758a4b..33895e1 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/.env.example
 +++ b/apps/slack-agent/.env.example
-@@ -13,3 +13,10 @@ DATABASE_URL=
- # Optional. One of mistral-small-latest, mistral-medium-latest,
- # mistral-large-latest. Defaults to mistral-small-latest.
- MISTRAL_MODEL=
+@@ -14,3 +14,10 @@
+ # Optional. One of the SUPPORTED_MODELS in ../storefront/lib/ai/models.ts.
+ # Defaults to anthropic/claude-sonnet-5.
+ # OPENROUTER_MODEL=anthropic/claude-sonnet-5
 +
 +# Sentry DSN for this project (Project Settings > Client Keys)
 +SENTRY_DSN=
@@ -14,10 +14,10 @@ index a758a4b..33895e1 100644
 +# Optional. Read automatically by the SDK; not passed to Sentry.init.
 +SENTRY_RELEASE=
 diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
-index 0a4ae58..881a090 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/README.md
 +++ b/apps/slack-agent/README.md
-@@ -23,4 +23,13 @@ message, so follow-ups like "refund that order" work.
+@@ -24,4 +24,13 @@
  7. `npm run dev`
  8. DM the bot: "show me the shoes collection".
  
@@ -33,32 +33,60 @@ index 0a4ae58..881a090 100644
 +Errors go to Sentry, and the console logging integration forwards the bot's
 +`console.log`/`console.error` lines as Sentry logs.
 diff --git a/apps/slack-agent/package-lock.json b/apps/slack-agent/package-lock.json
-index 83ce4b0..489d842 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/package-lock.json
 +++ b/apps/slack-agent/package-lock.json
 @@ -7,6 +7,7 @@
        "name": "slack-agent",
        "dependencies": {
-         "@ai-sdk/mistral": "4.0.30",
+         "@openrouter/ai-sdk-provider": "3.0.0",
 +        "@sentry/node": "11.0.0-rc.0",
          "@slack/bolt": "^4.4.0",
          "ai": "7.0.64",
          "dotenv": "17.4.2",
-@@ -107,6 +108,248 @@
+@@ -41,7 +42,19 @@
          "zod": "^3.25.76 || ^4.1.8"
        }
      },
+-    "node_modules/@ai-sdk/gateway/node_modules/@ai-sdk/provider-utils": {
++    "node_modules/@ai-sdk/provider": {
++      "version": "4.0.7",
++      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider/-/provider-4.0.7.tgz",
++      "integrity": "sha512-6or44XprPzKbr8zkmzosowSE0pxkvJcoojBL+mCZvPUt3kvXp3XSNqeVun9golb1acEfSo6yaEBRT18h2VU+1Q==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "json-schema": "^0.4.0"
++      },
++      "engines": {
++        "node": ">=22"
++      }
++    },
++    "node_modules/@ai-sdk/provider-utils": {
+       "version": "5.0.27",
+       "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider-utils/-/provider-utils-5.0.27.tgz",
+       "integrity": "sha512-EzAn4pdgG5g0xXtH6lE2zyNmfjDQIDjATkfqzuidEI35g++hh4+07vnjzkT/RmGmIClPZiRj/Q2GMPV2V7mkHw==",
+@@ -60,18 +73,230 @@
+         "zod": "^3.25.76 || ^4.1.8"
+       }
+     },
+-    "node_modules/@ai-sdk/provider": {
+-      "version": "4.0.7",
+-      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider/-/provider-4.0.7.tgz",
+-      "integrity": "sha512-6or44XprPzKbr8zkmzosowSE0pxkvJcoojBL+mCZvPUt3kvXp3XSNqeVun9golb1acEfSo6yaEBRT18h2VU+1Q==",
+-      "license": "Apache-2.0",
 +    "node_modules/@babel/code-frame": {
 +      "version": "7.29.7",
 +      "resolved": "https://sfw.security.sentry.io/npm/@babel/code-frame/-/code-frame-7.29.7.tgz",
 +      "integrity": "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==",
 +      "license": "MIT",
-+      "dependencies": {
+       "dependencies": {
+-        "json-schema": "^0.4.0"
 +        "@babel/helper-validator-identifier": "^7.29.7",
 +        "js-tokens": "^4.0.0",
 +        "picocolors": "^1.1.1"
-+      },
-+      "engines": {
+       },
+       "engines": {
+-        "node": ">=22"
 +        "node": ">=6.9.0"
 +      }
 +    },
@@ -101,15 +129,6 @@ index 83ce4b0..489d842 100644
 +        "url": "https://opencollective.com/babel"
 +      }
 +    },
-+    "node_modules/@babel/core/node_modules/semver": {
-+      "version": "6.3.1",
-+      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-6.3.1.tgz",
-+      "integrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
-+      "license": "ISC",
-+      "bin": {
-+        "semver": "bin/semver.js"
-+      }
-+    },
 +    "node_modules/@babel/generator": {
 +      "version": "7.29.8",
 +      "resolved": "https://sfw.security.sentry.io/npm/@babel/generator/-/generator-7.29.8.tgz",
@@ -140,15 +159,6 @@ index 83ce4b0..489d842 100644
 +      },
 +      "engines": {
 +        "node": ">=6.9.0"
-+      }
-+    },
-+    "node_modules/@babel/helper-compilation-targets/node_modules/semver": {
-+      "version": "6.3.1",
-+      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-6.3.1.tgz",
-+      "integrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
-+      "license": "ISC",
-+      "bin": {
-+        "semver": "bin/semver.js"
 +      }
 +    },
 +    "node_modules/@babel/helper-globals": {
@@ -243,8 +253,8 @@ index 83ce4b0..489d842 100644
 +      },
 +      "engines": {
 +        "node": ">=6.0.0"
-+      }
-+    },
+       }
+     },
 +    "node_modules/@babel/template": {
 +      "version": "7.29.7",
 +      "resolved": "https://sfw.security.sentry.io/npm/@babel/template/-/template-7.29.7.tgz",
@@ -293,7 +303,7 @@ index 83ce4b0..489d842 100644
      "node_modules/@esbuild/aix-ppc64": {
        "version": "0.28.2",
        "resolved": "https://sfw.security.sentry.io/npm/@esbuild/aix-ppc64/-/aix-ppc64-0.28.2.tgz",
-@@ -549,6 +792,172 @@
+@@ -514,6 +739,51 @@
          "node": ">=18"
        }
      },
@@ -340,6 +350,15 @@ index 83ce4b0..489d842 100644
 +      "dependencies": {
 +        "@jridgewell/resolve-uri": "^3.1.0",
 +        "@jridgewell/sourcemap-codec": "^1.4.14"
++      }
++    },
+     "node_modules/@openrouter/ai-sdk-provider": {
+       "version": "3.0.0",
+       "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
+@@ -525,8 +795,129 @@
+       "peerDependencies": {
+         "ai": "^7.0.0",
+         "zod": "^3.25.76 || ^4.1.8"
 +      }
 +    },
 +    "node_modules/@opentelemetry/api": {
@@ -447,8 +466,8 @@ index 83ce4b0..489d842 100644
 +      },
 +      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-+      }
-+    },
+       }
+     },
 +    "node_modules/@sentry/server-utils": {
 +      "version": "11.0.0-rc.0",
 +      "resolved": "https://sfw.security.sentry.io/npm/@sentry/server-utils/-/server-utils-11.0.0-rc.0.tgz",
@@ -466,7 +485,33 @@ index 83ce4b0..489d842 100644
      "node_modules/@slack/bolt": {
        "version": "4.7.3",
        "resolved": "https://sfw.security.sentry.io/npm/@slack/bolt/-/bolt-4.7.3.tgz",
-@@ -1236,6 +1645,27 @@
+@@ -1177,25 +1568,6 @@
+         "zod": "^3.25.76 || ^4.1.8"
+       }
+     },
+-    "node_modules/ai/node_modules/@ai-sdk/provider-utils": {
+-      "version": "5.0.27",
+-      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider-utils/-/provider-utils-5.0.27.tgz",
+-      "integrity": "sha512-EzAn4pdgG5g0xXtH6lE2zyNmfjDQIDjATkfqzuidEI35g++hh4+07vnjzkT/RmGmIClPZiRj/Q2GMPV2V7mkHw==",
+-      "license": "Apache-2.0",
+-      "dependencies": {
+-        "@ai-sdk/provider": "4.0.7",
+-        "@standard-schema/spec": "^1.1.0",
+-        "@workflow/serde": "4.1.0",
+-        "eventsource-parser": "^3.0.8",
+-        "undici": "^7.28.0"
+-      },
+-      "engines": {
+-        "node": ">=22"
+-      },
+-      "peerDependencies": {
+-        "zod": "^3.25.76 || ^4.1.8"
+-      }
+-    },
+     "node_modules/asynckit": {
+       "version": "0.4.0",
+       "resolved": "https://sfw.security.sentry.io/npm/asynckit/-/asynckit-0.4.0.tgz",
+@@ -1214,6 +1586,27 @@
          "proxy-from-env": "^2.1.0"
        }
      },
@@ -480,9 +525,9 @@ index 83ce4b0..489d842 100644
 +      }
 +    },
 +    "node_modules/baseline-browser-mapping": {
-+      "version": "2.11.24",
-+      "resolved": "https://sfw.security.sentry.io/npm/baseline-browser-mapping/-/baseline-browser-mapping-2.11.24.tgz",
-+      "integrity": "sha512-hYrgxie335U08WqICoGqKRzV1HFXv6zdxwJE4ekCb80CM9a0SVVsN4QPwT67RraRo+9h8IATk6uxHJw7QSkdOg==",
++      "version": "2.11.25",
++      "resolved": "https://sfw.security.sentry.io/npm/baseline-browser-mapping/-/baseline-browser-mapping-2.11.25.tgz",
++      "integrity": "sha512-gMmEShwwq7FJqMwvfRwvCl00v4kN+KOfJqXn+f4nrufak5gNHJOksd/60Dvjuz7sI8Y5WiSFBa8FEYr+zoyqCw==",
 +      "license": "Apache-2.0",
 +      "bin": {
 +        "baseline-browser-mapping": "dist/cli.cjs"
@@ -494,10 +539,12 @@ index 83ce4b0..489d842 100644
      "node_modules/body-parser": {
        "version": "2.3.0",
        "resolved": "https://sfw.security.sentry.io/npm/body-parser/-/body-parser-2.3.0.tgz",
-@@ -1273,6 +1703,51 @@
+@@ -1249,6 +1642,51 @@
+       "funding": {
+         "type": "opencollective",
          "url": "https://opencollective.com/express"
-       }
-     },
++      }
++    },
 +    "node_modules/brace-expansion": {
 +      "version": "5.0.12",
 +      "resolved": "https://sfw.security.sentry.io/npm/brace-expansion/-/brace-expansion-5.0.12.tgz",
@@ -541,12 +588,10 @@ index 83ce4b0..489d842 100644
 +      },
 +      "engines": {
 +        "node": "^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7"
-+      }
-+    },
+       }
+     },
      "node_modules/buffer-equal-constant-time": {
-       "version": "1.0.1",
-       "resolved": "https://sfw.security.sentry.io/npm/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz",
-@@ -1317,6 +1792,26 @@
+@@ -1295,6 +1733,26 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -573,7 +618,7 @@ index 83ce4b0..489d842 100644
      "node_modules/combined-stream": {
        "version": "1.0.8",
        "resolved": "https://sfw.security.sentry.io/npm/combined-stream/-/combined-stream-1.0.8.tgz",
-@@ -1351,6 +1846,12 @@
+@@ -1329,6 +1787,12 @@
          "node": ">= 0.6"
        }
      },
@@ -586,7 +631,7 @@ index 83ce4b0..489d842 100644
      "node_modules/cookie": {
        "version": "0.7.2",
        "resolved": "https://sfw.security.sentry.io/npm/cookie/-/cookie-0.7.2.tgz",
-@@ -1570,6 +2071,12 @@
+@@ -1548,6 +2012,12 @@
        "integrity": "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==",
        "license": "MIT"
      },
@@ -599,10 +644,12 @@ index 83ce4b0..489d842 100644
      "node_modules/encodeurl": {
        "version": "2.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/encodeurl/-/encodeurl-2.0.0.tgz",
-@@ -1666,6 +2173,15 @@
+@@ -1642,6 +2112,15 @@
+         "@esbuild/win32-arm64": "0.28.2",
+         "@esbuild/win32-ia32": "0.28.2",
          "@esbuild/win32-x64": "0.28.2"
-       }
-     },
++      }
++    },
 +    "node_modules/escalade": {
 +      "version": "3.2.0",
 +      "resolved": "https://sfw.security.sentry.io/npm/escalade/-/escalade-3.2.0.tgz",
@@ -610,12 +657,10 @@ index 83ce4b0..489d842 100644
 +      "license": "MIT",
 +      "engines": {
 +        "node": ">=6"
-+      }
-+    },
+       }
+     },
      "node_modules/escape-html": {
-       "version": "1.0.3",
-       "resolved": "https://sfw.security.sentry.io/npm/escape-html/-/escape-html-1.0.3.tgz",
-@@ -1859,6 +2375,15 @@
+@@ -1837,6 +2316,15 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -631,10 +676,12 @@ index 83ce4b0..489d842 100644
      "node_modules/get-intrinsic": {
        "version": "1.3.0",
        "resolved": "https://sfw.security.sentry.io/npm/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
-@@ -1896,6 +2421,23 @@
+@@ -1872,6 +2360,23 @@
+       },
+       "engines": {
          "node": ">= 0.4"
-       }
-     },
++      }
++    },
 +    "node_modules/glob": {
 +      "version": "13.0.6",
 +      "resolved": "https://sfw.security.sentry.io/npm/glob/-/glob-13.0.6.tgz",
@@ -650,12 +697,10 @@ index 83ce4b0..489d842 100644
 +      },
 +      "funding": {
 +        "url": "https://github.com/sponsors/isaacs"
-+      }
-+    },
+       }
+     },
      "node_modules/gopd": {
-       "version": "1.2.0",
-       "resolved": "https://sfw.security.sentry.io/npm/gopd/-/gopd-1.2.0.tgz",
-@@ -1908,6 +2450,15 @@
+@@ -1886,6 +2391,15 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -671,7 +716,7 @@ index 83ce4b0..489d842 100644
      "node_modules/has-symbols": {
        "version": "1.1.0",
        "resolved": "https://sfw.security.sentry.io/npm/has-symbols/-/has-symbols-1.1.0.tgz",
-@@ -2035,12 +2586,42 @@
+@@ -2013,12 +2527,42 @@
          "url": "https://github.com/sponsors/sindresorhus"
        }
      },
@@ -714,7 +759,26 @@ index 83ce4b0..489d842 100644
      "node_modules/jsonwebtoken": {
        "version": "9.0.3",
        "resolved": "https://sfw.security.sentry.io/npm/jsonwebtoken/-/jsonwebtoken-9.0.3.tgz",
-@@ -2126,6 +2707,24 @@
+@@ -2041,6 +2585,18 @@
+         "npm": ">=6"
+       }
+     },
++    "node_modules/jsonwebtoken/node_modules/semver": {
++      "version": "7.8.5",
++      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-7.8.5.tgz",
++      "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
++      "license": "ISC",
++      "bin": {
++        "semver": "bin/semver.js"
++      },
++      "engines": {
++        "node": ">=10"
++      }
++    },
+     "node_modules/jwa": {
+       "version": "2.0.1",
+       "resolved": "https://sfw.security.sentry.io/npm/jwa/-/jwa-2.0.1.tgz",
+@@ -2104,6 +2660,24 @@
        "integrity": "sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==",
        "license": "MIT"
      },
@@ -739,7 +803,7 @@ index 83ce4b0..489d842 100644
      "node_modules/math-intrinsics": {
        "version": "1.1.0",
        "resolved": "https://sfw.security.sentry.io/npm/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
-@@ -2185,6 +2784,30 @@
+@@ -2163,6 +2737,30 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -770,7 +834,7 @@ index 83ce4b0..489d842 100644
      "node_modules/ms": {
        "version": "2.1.3",
        "resolved": "https://sfw.security.sentry.io/npm/ms/-/ms-2.1.3.tgz",
-@@ -2220,6 +2843,15 @@
+@@ -2198,6 +2796,15 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -786,10 +850,12 @@ index 83ce4b0..489d842 100644
      "node_modules/object-inspect": {
        "version": "1.13.4",
        "resolved": "https://sfw.security.sentry.io/npm/object-inspect/-/object-inspect-1.13.4.tgz",
-@@ -2318,6 +2950,31 @@
+@@ -2294,8 +2901,33 @@
+       "license": "MIT",
+       "engines": {
          "node": ">= 0.8"
-       }
-     },
++      }
++    },
 +    "node_modules/path-scurry": {
 +      "version": "2.0.2",
 +      "resolved": "https://sfw.security.sentry.io/npm/path-scurry/-/path-scurry-2.0.2.tgz",
@@ -804,8 +870,8 @@ index 83ce4b0..489d842 100644
 +      },
 +      "funding": {
 +        "url": "https://github.com/sponsors/isaacs"
-+      }
-+    },
+       }
+     },
 +    "node_modules/path-scurry/node_modules/lru-cache": {
 +      "version": "11.5.2",
 +      "resolved": "https://sfw.security.sentry.io/npm/lru-cache/-/lru-cache-11.5.2.tgz",
@@ -818,7 +884,7 @@ index 83ce4b0..489d842 100644
      "node_modules/path-to-regexp": {
        "version": "8.4.2",
        "resolved": "https://sfw.security.sentry.io/npm/path-to-regexp/-/path-to-regexp-8.4.2.tgz",
-@@ -2417,6 +3074,12 @@
+@@ -2395,6 +3027,12 @@
          "split2": "^4.1.0"
        }
      },
@@ -831,7 +897,26 @@ index 83ce4b0..489d842 100644
      "node_modules/postgres-array": {
        "version": "2.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/postgres-array/-/postgres-array-2.0.0.tgz",
-@@ -2615,6 +3278,18 @@
+@@ -2556,15 +3194,12 @@
+       "license": "MIT"
+     },
+     "node_modules/semver": {
+-      "version": "7.8.5",
+-      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-7.8.5.tgz",
+-      "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
++      "version": "6.3.1",
++      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-6.3.1.tgz",
++      "integrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
+       "license": "ISC",
+       "bin": {
+         "semver": "bin/semver.js"
+-      },
+-      "engines": {
+-        "node": ">=10"
+       }
+     },
+     "node_modules/send": {
+@@ -2593,6 +3228,18 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -850,10 +935,12 @@ index 83ce4b0..489d842 100644
      "node_modules/serve-static": {
        "version": "2.2.1",
        "resolved": "https://sfw.security.sentry.io/npm/serve-static/-/serve-static-2.2.1.tgz",
-@@ -2730,6 +3405,21 @@
+@@ -2706,6 +3353,21 @@
+       "license": "MIT",
+       "engines": {
          "node": ">= 0.8"
-       }
-     },
++      }
++    },
 +    "node_modules/supports-color": {
 +      "version": "8.1.1",
 +      "resolved": "https://sfw.security.sentry.io/npm/supports-color/-/supports-color-8.1.1.tgz",
@@ -867,12 +954,10 @@ index 83ce4b0..489d842 100644
 +      },
 +      "funding": {
 +        "url": "https://github.com/chalk/supports-color?sponsor=1"
-+      }
-+    },
+       }
+     },
      "node_modules/toidentifier": {
-       "version": "1.0.1",
-       "resolved": "https://sfw.security.sentry.io/npm/toidentifier/-/toidentifier-1.0.1.tgz",
-@@ -2857,6 +3547,36 @@
+@@ -2835,6 +3497,36 @@
          "node": ">= 0.8"
        }
      },
@@ -909,7 +994,7 @@ index 83ce4b0..489d842 100644
      "node_modules/vary": {
        "version": "1.1.2",
        "resolved": "https://sfw.security.sentry.io/npm/vary/-/vary-1.1.2.tgz",
-@@ -2902,6 +3622,12 @@
+@@ -2880,6 +3572,12 @@
          "node": ">=0.4"
        }
      },
@@ -923,19 +1008,19 @@ index 83ce4b0..489d842 100644
        "version": "4.4.3",
        "resolved": "https://sfw.security.sentry.io/npm/zod/-/zod-4.4.3.tgz",
 diff --git a/apps/slack-agent/package.json b/apps/slack-agent/package.json
-index 12bcc95..1af0241 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/package.json
 +++ b/apps/slack-agent/package.json
 @@ -12,6 +12,7 @@
    },
    "dependencies": {
-     "@ai-sdk/mistral": "4.0.30",
+     "@openrouter/ai-sdk-provider": "3.0.0",
 +    "@sentry/node": "11.0.0-rc.0",
      "@slack/bolt": "^4.4.0",
      "ai": "7.0.64",
      "dotenv": "17.4.2",
 diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
-index 89c39d0..7c52277 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/src/app.ts
 +++ b/apps/slack-agent/src/app.ts
 @@ -1,3 +1,5 @@
@@ -944,7 +1029,7 @@ index 89c39d0..7c52277 100644
  import { App } from "@slack/bolt";
  import type { SayFn } from "@slack/bolt";
  import type { AppMentionEvent, MessageEvent } from "@slack/types";
-@@ -43,14 +45,14 @@ app.event(
+@@ -43,14 +45,14 @@
      const conversationId = event.thread_ts ?? event.ts;
      const text = stripMention(event.text ?? "");
  
@@ -967,7 +1052,7 @@ index 89c39d0..7c52277 100644
    },
  );
  
-@@ -75,17 +77,62 @@ app.event(
+@@ -75,17 +77,62 @@
      const conversationId = event.thread_ts ?? event.ts;
      const text = stripMention(event.text ?? "");
  
@@ -1039,8 +1124,8 @@ index 89c39d0..7c52277 100644
  // leading mention so the model sees a plain question.
  function stripMention(text: string): string {
 diff --git a/apps/slack-agent/src/instrument.ts b/apps/slack-agent/src/instrument.ts
+index 0000000..0000000
 new file mode 100644
-index 0000000..f77a5b2
 --- /dev/null
 +++ b/apps/slack-agent/src/instrument.ts
 @@ -0,0 +1,8 @@

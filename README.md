@@ -13,10 +13,13 @@ to ask for and how to check the result.
 | --- | --- | --- | --- |
 | `apps/storefront` | Browser chat on a Next.js app | Next.js, Vercel AI SDK, Postgres on Neon | Hands-on |
 | `apps/slack-agent` | Long-lived Slack bot | Node, Bolt (Socket Mode), Vercel AI SDK, same Postgres | Follow along |
-| `apps/pr-reviewer` | GitHub Actions job | Node, Flue (OpenTelemetry), Mistral | Follow along |
+| `apps/pr-reviewer` | GitHub Actions job | Node, Flue (OpenTelemetry), OpenRouter | Follow along |
 
-All three call Mistral through the Vercel AI SDK. Mistral's free Experiment
-plan covers the workshop. Neon's instant Postgres needs no account.
+All three call models through OpenRouter: the storefront and the Slack agent
+run Claude Sonnet 5 through the Vercel AI SDK, and the PR reviewer runs Claude
+Haiku 4.5 through Flue. The presenter shares one OpenRouter key at the start
+of the workshop, so no account is needed. Neon's instant Postgres needs no
+account either.
 
 ## Before the workshop
 
@@ -24,7 +27,8 @@ Do these once, before the day. Each takes a few minutes. See
 [`labs/00-setup.md`](labs/00-setup.md) for the details.
 
 1. A Sentry account: <https://sentry.io/signup/>
-2. A Mistral API key with the free Experiment plan active: <https://console.mistral.ai/>
+2. An OpenRouter API key: the presenter shares one at the start of the
+   workshop, so no account is needed.
 3. A coding agent with Sentry's MCP server attached. Claude Code users install
    the `sentry` plugin. Other agents add <https://mcp.sentry.dev/mcp>.
 4. Node 22 and git.
@@ -38,7 +42,7 @@ cd debugging-agents-workshop
 ```
 
 The script checks Node, creates a Postgres database on Neon, seeds it, and
-asks for your Mistral key and Sentry DSN.
+asks for your OpenRouter key and Sentry DSN.
 
 ## Labs
 

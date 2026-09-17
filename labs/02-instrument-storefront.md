@@ -4,7 +4,8 @@
 
 The storefront has a shopping assistant at `/api/chat`. It has four tools:
 search products, get product, get account info, refund order. It runs on the
-Vercel AI SDK with Mistral, and reads Postgres on Neon. It has no Sentry.
+Vercel AI SDK with Claude Sonnet 5 through OpenRouter, and reads Postgres on
+Neon. It has no Sentry.
 
 You add agent tracing with one prompt to your coding agent. Then you verify
 the result through Sentry's MCP server, not by clicking around.

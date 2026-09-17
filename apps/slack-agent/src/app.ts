@@ -8,7 +8,7 @@ import { answer } from "./agent";
 const required = [
   "SLACK_BOT_TOKEN",
   "SLACK_APP_TOKEN",
-  "MISTRAL_API_KEY",
+  "OPENROUTER_API_KEY",
   "DATABASE_URL",
 ] as const;
 

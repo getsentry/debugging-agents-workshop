@@ -2,7 +2,7 @@
 
 Patches that reintroduce a bug for a lab exercise.
 
-- `drop-cache-key.patch` - removes the `promptCacheKey` provider option, so
-  repeated turns in a conversation stop sharing Mistral's prompt cache.
-  Apply with `git apply regressions/drop-cache-key.patch` from
+- `drop-prompt-cache.patch` - removes the cache breakpoint from the system
+  prompt, so Anthropic caches nothing and cached input tokens fall to zero on
+  every turn. Apply with `git apply regressions/drop-prompt-cache.patch` from
   `apps/slack-agent`.

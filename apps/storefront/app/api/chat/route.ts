@@ -1,4 +1,4 @@
-import { mistral } from "@ai-sdk/mistral";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
@@ -6,13 +6,16 @@ import {
   streamText,
   toUIMessageStream,
 } from "ai";
+import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
 import { resolveModel } from "lib/ai/models";
 import { createTools, type AssistantUIMessage } from "lib/ai/tools";
 import { DEMO_USER } from "lib/demo-user";
 
 export const maxDuration = 30;
 
-const instructions =
+const openrouter = createOpenRouter();
+
+const assistantInstructions =
   "You are the shopping assistant for Acme Store. " +
   "Use searchProducts to find products (search with product-type keywords " +
   'like "hoodie" or "mug", or browse a collection), getProduct for one ' +
@@ -30,18 +33,18 @@ export async function POST(req: Request) {
     await req.json();
 
   const result = streamText({
-    model: mistral(resolveModel()),
-    instructions,
+    model: openrouter.chat(resolveModel()),
+    instructions: {
+      role: "system",
+      content: `${assistantInstructions}\n\n${STORE_POLICIES}`,
+      providerOptions: PROMPT_CACHE_OPTIONS,
+    },
     messages: await convertToModelMessages(messages),
     tools: createTools(DEMO_USER.id, id),
     stopWhen: isStepCount(5),
     // functionId names the agent in the AI SDK's telemetry.
     telemetry: {
       functionId: "shopping-assistant",
-    },
-    // Repeated turns in one conversation share the cache prefix.
-    providerOptions: {
-      mistral: { promptCacheKey: id ?? "shopping-assistant" },
     },
   });
 
