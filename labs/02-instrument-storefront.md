@@ -46,6 +46,22 @@ What to watch while it works:
   production-shaped setups.
 - Whether it verifies over MCP at the end, or only says "done".
 
+## If your agent is still running
+
+Agents differ. Some finish in two minutes, some take ten, and no two produce
+the same diff. When the room moves on, keep your agent running in its window
+and switch to the finished result:
+
+```sh
+./scripts/solution.sh storefront
+```
+
+It applies `solutions/02-storefront/instrumentation.patch` and installs the
+new dependency. Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` in
+`apps/storefront/.env.local` from your Sentry project, restart the dev
+server, and continue with Step 3. Compare your agent's diff with the patch
+later. The differences are the lesson.
+
 ## Step 3. Verify
 
 Ask:

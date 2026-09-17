@@ -42,6 +42,17 @@ Watch for:
 - Whether it imports Sentry before Bolt and the AI SDK. Import order decides
   what gets instrumented.
 
+## If your agent is still running
+
+Switch to the finished result and continue:
+
+```sh
+./scripts/solution.sh slack-agent
+```
+
+Set `SENTRY_DSN` in `apps/slack-agent/.env.local`, restart `npm run dev`,
+and continue with Step 2.
+
 ## Step 2. Verify
 
 Send the bot a direct message: "what did I order last?" Then ask your agent:

@@ -52,8 +52,18 @@ asks for your Mistral key and Sentry DSN.
 | 5 | [The same agent in GitHub Actions](labs/05-pr-reviewer.md) | 10 |
 | 6 | [Alerts and dashboards for each critical path](labs/06-critical-paths.md) | 10 |
 
-`solutions/` holds the transcript and resulting diff from each prompt, run
-with Claude Code and the Sentry plugin, so you can compare your result.
+Every prompt is also in [PROMPTS.md](PROMPTS.md), ready to paste.
+
+Coding agents take different amounts of time and produce different diffs.
+Nobody waits for a prompt to finish. When the room moves on, apply the
+finished instrumentation for the current app and continue:
+
+```sh
+./scripts/solution.sh storefront    # or slack-agent, pr-reviewer
+```
+
+`solutions/<lab>/` holds each patch and a README that lists what it adds,
+so you can compare it with what your agent did.
 
 ## Reference
 

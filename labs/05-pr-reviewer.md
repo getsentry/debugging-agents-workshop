@@ -42,6 +42,17 @@ Watch for:
 - Whether it flushes. A CI run without a flush sends nothing and reports
   success.
 
+## If your agent is still running
+
+Switch to the finished result and continue:
+
+```sh
+./scripts/solution.sh pr-reviewer
+```
+
+Set `SENTRY_DSN` in `apps/pr-reviewer/.env.local` and as a repository secret,
+then continue with Step 2.
+
 ## Step 2. Verify
 
 Ask:

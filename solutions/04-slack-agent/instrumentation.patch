@@ -1,0 +1,546 @@
+diff --git a/apps/slack-agent/.env.example b/apps/slack-agent/.env.example
+index a758a4b..80d1ae1 100644
+--- a/apps/slack-agent/.env.example
++++ b/apps/slack-agent/.env.example
+@@ -13,3 +13,10 @@ DATABASE_URL=
+ # Optional. One of mistral-small-latest, mistral-medium-latest,
+ # mistral-large-latest. Defaults to mistral-small-latest.
+ MISTRAL_MODEL=
++
++# Sentry DSN for this project (Project Settings > Client Keys)
++SENTRY_DSN=
++# Optional. Defaults to "development".
++SENTRY_ENVIRONMENT=
++# Optional. Tags traces and logs with the release the presenter tagged.
++SENTRY_RELEASE=
+diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
+index 0a4ae58..36feb33 100644
+--- a/apps/slack-agent/README.md
++++ b/apps/slack-agent/README.md
+@@ -23,4 +23,12 @@ message, so follow-ups like "refund that order" work.
+ 7. `npm run dev`
+ 8. DM the bot: "show me the shoes collection".
+ 
+-Sentry is added to this app in `labs/04-slack-agent.md`.
++## Sentry
++
++Set `SENTRY_DSN` in `.env.local` (`SENTRY_ENVIRONMENT` and `SENTRY_RELEASE`
++are optional). Each handled Slack message becomes one trace: a `slack.message`
++transaction tagged with the Slack channel and the thread timestamp as the
++conversation id, with the model call and its tool calls nested inside as
++`gen_ai` spans, and Postgres queries from `lib/db` as `db.query` spans. The
++Sentry user is the Slack user who sent the message. Errors and the bot's own
++log lines go to Sentry too.
+diff --git a/apps/slack-agent/package-lock.json b/apps/slack-agent/package-lock.json
+index 83ce4b0..9a79e4c 100644
+--- a/apps/slack-agent/package-lock.json
++++ b/apps/slack-agent/package-lock.json
+@@ -7,6 +7,7 @@
+       "name": "slack-agent",
+       "dependencies": {
+         "@ai-sdk/mistral": "4.0.30",
++        "@sentry/node": "^10.75.0",
+         "@slack/bolt": "^4.4.0",
+         "ai": "7.0.64",
+         "dotenv": "17.4.2",
+@@ -549,6 +550,230 @@
+         "node": ">=18"
+       }
+     },
++    "node_modules/@opentelemetry/api": {
++      "version": "1.9.1",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/api/-/api-1.9.1.tgz",
++      "integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=8.0.0"
++      }
++    },
++    "node_modules/@opentelemetry/api-logs": {
++      "version": "0.220.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/api-logs/-/api-logs-0.220.0.tgz",
++      "integrity": "sha512-CmVa4ImJ+ynfrPMNaAXHET6Bhb44SwzmfyVJFq9ni2jgXJR/l7C6gfVFddNmHP+ZOkP9cf4f9DBe68qVLTHc9w==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "@opentelemetry/api": "^1.3.0"
++      },
++      "engines": {
++        "node": ">=8.0.0"
++      }
++    },
++    "node_modules/@opentelemetry/core": {
++      "version": "2.11.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/core/-/core-2.11.0.tgz",
++      "integrity": "sha512-7YP44XH0tV6+Mb54x2YGf84i7yi+31MBZlE8JwvozkxyTvXbSp10X7cI7YE49ChJ3shMJoBmCJF3+1QFBJctGA==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "@opentelemetry/semantic-conventions": "^1.29.0"
++      },
++      "engines": {
++        "node": "^18.19.0 || >=20.6.0"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": ">=1.0.0 <1.10.0"
++      }
++    },
++    "node_modules/@opentelemetry/instrumentation": {
++      "version": "0.220.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/instrumentation/-/instrumentation-0.220.0.tgz",
++      "integrity": "sha512-xQx3E2WxP1mDvKzxLxX+CTCtNLa560YJZ3087qYHerl2YmiKpv7AH+dAy7vmx+eVrZ5BwhfWUAVoKOoxCNHcpw==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "@opentelemetry/api-logs": "0.220.0",
++        "import-in-the-middle": "^3.0.0",
++        "require-in-the-middle": "^8.0.0"
++      },
++      "engines": {
++        "node": "^18.19.0 || >=20.6.0"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": "^1.3.0"
++      }
++    },
++    "node_modules/@opentelemetry/resources": {
++      "version": "2.11.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/resources/-/resources-2.11.0.tgz",
++      "integrity": "sha512-Ie7+8q8MDF4FAEQCKVMTx3ReUvxiIAgIiiW3c9JdmP8+HMcDy20puT+AHjexnExgnbvBxjQ9fjkFDWrikJ2jQA==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "@opentelemetry/core": "2.11.0",
++        "@opentelemetry/semantic-conventions": "^1.29.0"
++      },
++      "engines": {
++        "node": "^18.19.0 || >=20.6.0"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": ">=1.3.0 <1.10.0"
++      }
++    },
++    "node_modules/@opentelemetry/sdk-trace": {
++      "version": "2.11.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/sdk-trace/-/sdk-trace-2.11.0.tgz",
++      "integrity": "sha512-fFnTqGm8/G73GQVnxYi7LXa1ZVYEUvgL6XI1LpvV0bPC7WQ/ZGgKxCSl8FnlZBKto9JHHEFTO6s6CUpvvtwFrA==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "@opentelemetry/core": "2.11.0",
++        "@opentelemetry/resources": "2.11.0",
++        "@opentelemetry/semantic-conventions": "^1.29.0"
++      },
++      "engines": {
++        "node": "^18.19.0 || >=20.6.0"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": ">=1.3.0 <1.10.0"
++      }
++    },
++    "node_modules/@opentelemetry/sdk-trace-base": {
++      "version": "2.11.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/sdk-trace-base/-/sdk-trace-base-2.11.0.tgz",
++      "integrity": "sha512-H19x/TX/LZdqiYOjM7fqtSxwlplC5pgelavqbQdHbhdq0q/AI/TGkM2dfGuuynTXmJPeF2HoZVoPDu+TGoW78A==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "@opentelemetry/core": "2.11.0",
++        "@opentelemetry/resources": "2.11.0",
++        "@opentelemetry/sdk-trace": "2.11.0",
++        "@opentelemetry/semantic-conventions": "^1.29.0"
++      },
++      "engines": {
++        "node": "^18.19.0 || >=20.6.0"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": ">=1.3.0 <1.10.0"
++      }
++    },
++    "node_modules/@opentelemetry/semantic-conventions": {
++      "version": "1.43.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/semantic-conventions/-/semantic-conventions-1.43.0.tgz",
++      "integrity": "sha512-eSYWTm620tTk45EKSedaUL8MFYI8hW164hIXsgIHyxu3VobUB3fFCu5t0hQby6OoWRPsG1KkKUG2M5UadiLiVg==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=14"
++      }
++    },
++    "node_modules/@sentry/conventions": {
++      "version": "0.16.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/conventions/-/conventions-0.16.0.tgz",
++      "integrity": "sha512-fO9PLmHdVURcSPUpWCItWAtgKiMwGdJHbovoSEyLplX5sxs2ugvI4CBPTrkkgqhObnZOD0CnWBKDzSVQYBKEyQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=14"
++      }
++    },
++    "node_modules/@sentry/core": {
++      "version": "10.75.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/core/-/core-10.75.0.tgz",
++      "integrity": "sha512-5wDQpQqjJ6RHdPR+z6Q+47XlwoxRKBv0yyB0LKHqL/1azPOQbR+nllyLmmQDcoJpaksuLSmLA1q6hFX7gjDT2w==",
++      "license": "MIT",
++      "dependencies": {
++        "@sentry/conventions": "^0.16.0"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
++    "node_modules/@sentry/node": {
++      "version": "10.75.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/node/-/node-10.75.0.tgz",
++      "integrity": "sha512-XdYW+SEiscQnuugh1hMldfnHurmleKSTSDqgfro6Y1yd7s0r2csnZ5/SEYxIeL4lSl1QXg1lIA1pBmAXjcdnKA==",
++      "license": "MIT",
++      "dependencies": {
++        "@opentelemetry/api": "^1.9.1",
++        "@opentelemetry/instrumentation": "^0.220.0",
++        "@opentelemetry/sdk-trace-base": "^2.9.0",
++        "@sentry/conventions": "^0.16.0",
++        "@sentry/core": "10.75.0",
++        "@sentry/node-core": "10.75.0",
++        "@sentry/opentelemetry": "10.75.0",
++        "@sentry/server-utils": "10.75.0",
++        "import-in-the-middle": "^3.0.0"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
++    "node_modules/@sentry/node-core": {
++      "version": "10.75.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/node-core/-/node-core-10.75.0.tgz",
++      "integrity": "sha512-+E3KSX1oMqhpWQ23hj6NblIVUzLy3T2oceU7DfMX1s1ar+npaQZxR5K0/cMGcQgS1LLm8Jqwqo/lrZlKTCDm5A==",
++      "license": "MIT",
++      "dependencies": {
++        "@sentry/conventions": "^0.16.0",
++        "@sentry/core": "10.75.0",
++        "@sentry/opentelemetry": "10.75.0",
++        "import-in-the-middle": "^3.0.0"
++      },
++      "engines": {
++        "node": ">=18"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": "^1.9.0",
++        "@opentelemetry/core": "^1.30.1 || ^2.1.0",
++        "@opentelemetry/exporter-trace-otlp-http": ">=0.57.0 <1",
++        "@opentelemetry/instrumentation": ">=0.57.1 <1",
++        "@opentelemetry/sdk-trace-base": "^1.30.1 || ^2.1.0"
++      },
++      "peerDependenciesMeta": {
++        "@opentelemetry/api": {
++          "optional": true
++        },
++        "@opentelemetry/core": {
++          "optional": true
++        },
++        "@opentelemetry/exporter-trace-otlp-http": {
++          "optional": true
++        },
++        "@opentelemetry/instrumentation": {
++          "optional": true
++        },
++        "@opentelemetry/sdk-trace-base": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@sentry/opentelemetry": {
++      "version": "10.75.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/opentelemetry/-/opentelemetry-10.75.0.tgz",
++      "integrity": "sha512-reJoMtuHMuaiztoDVoaeitc22eHlTAvz2qpFhibWyzukJlF8oXB+o8EvDN9mmDDMedU89c//cXRcnPBlJvUxcw==",
++      "license": "MIT",
++      "dependencies": {
++        "@sentry/conventions": "^0.16.0",
++        "@sentry/core": "10.75.0"
++      },
++      "engines": {
++        "node": ">=18"
++      },
++      "peerDependencies": {
++        "@opentelemetry/api": "^1.9.0",
++        "@opentelemetry/core": "^1.30.1 || ^2.1.0",
++        "@opentelemetry/sdk-trace-base": "^1.30.1 || ^2.1.0"
++      }
++    },
++    "node_modules/@sentry/server-utils": {
++      "version": "10.75.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/server-utils/-/server-utils-10.75.0.tgz",
++      "integrity": "sha512-7fIa9vFGNzB13hmxl8Sip3xImSkqpc4wETzuQ7CLzVOwPvwI6y/gVEm0pxRhtJSq8SzfOp26eJWl80u8v78Osg==",
++      "license": "MIT",
++      "dependencies": {
++        "@sentry/conventions": "^0.16.0",
++        "@sentry/core": "10.75.0"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
+     "node_modules/@slack/bolt": {
+       "version": "4.7.3",
+       "resolved": "https://sfw.security.sentry.io/npm/@slack/bolt/-/bolt-4.7.3.tgz",
+@@ -1317,6 +1542,12 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/cjs-module-lexer": {
++      "version": "2.2.1",
++      "resolved": "https://sfw.security.sentry.io/npm/cjs-module-lexer/-/cjs-module-lexer-2.2.1.tgz",
++      "integrity": "sha512-Ca8swihM+/4yKecYHY52kgJd300hi2lADU/a1RxNTRe+RJ9jvqQlESpbz9DnG9mowez8qwXHB8qYdIUw9e+F5Q==",
++      "license": "MIT"
++    },
+     "node_modules/combined-stream": {
+       "version": "1.0.8",
+       "resolved": "https://sfw.security.sentry.io/npm/combined-stream/-/combined-stream-1.0.8.tgz",
+@@ -1597,6 +1828,12 @@
+         "node": ">= 0.4"
+       }
+     },
++    "node_modules/es-module-lexer": {
++      "version": "3.0.2",
++      "resolved": "https://sfw.security.sentry.io/npm/es-module-lexer/-/es-module-lexer-3.0.2.tgz",
++      "integrity": "sha512-BuIB67FngDSyQ/dpQNOZybwdEBDUGJQvOqwWr4ha/ufYiqzuEwPkKO2zLhRAgay28tStRIHUeWmszZAJo3GCOg==",
++      "license": "MIT"
++    },
+     "node_modules/es-object-atoms": {
+       "version": "1.1.2",
+       "resolved": "https://sfw.security.sentry.io/npm/es-object-atoms/-/es-object-atoms-1.1.2.tgz",
+@@ -1996,6 +2233,20 @@
+         "url": "https://opencollective.com/express"
+       }
+     },
++    "node_modules/import-in-the-middle": {
++      "version": "3.5.1",
++      "resolved": "https://sfw.security.sentry.io/npm/import-in-the-middle/-/import-in-the-middle-3.5.1.tgz",
++      "integrity": "sha512-mPKuL8bPQzecui2KK6Gb+M8JvJoHnhS1FeYGa22QopBmlevF5F0FE6ued/B5EgHDeIoMTONIpDWWFKUPOG0DBQ==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "cjs-module-lexer": "^2.2.0",
++        "es-module-lexer": "^3.0.2",
++        "module-details-from-path": "^1.0.4"
++      },
++      "engines": {
++        "node": ">=18"
++      }
++    },
+     "node_modules/inherits": {
+       "version": "2.0.4",
+       "resolved": "https://sfw.security.sentry.io/npm/inherits/-/inherits-2.0.4.tgz",
+@@ -2185,6 +2436,12 @@
+         "url": "https://opencollective.com/express"
+       }
+     },
++    "node_modules/module-details-from-path": {
++      "version": "1.0.4",
++      "resolved": "https://sfw.security.sentry.io/npm/module-details-from-path/-/module-details-from-path-1.0.4.tgz",
++      "integrity": "sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==",
++      "license": "MIT"
++    },
+     "node_modules/ms": {
+       "version": "2.1.3",
+       "resolved": "https://sfw.security.sentry.io/npm/ms/-/ms-2.1.3.tgz",
+@@ -2526,6 +2783,19 @@
+         "node": ">= 0.10"
+       }
+     },
++    "node_modules/require-in-the-middle": {
++      "version": "8.0.1",
++      "resolved": "https://sfw.security.sentry.io/npm/require-in-the-middle/-/require-in-the-middle-8.0.1.tgz",
++      "integrity": "sha512-QT7FVMXfWOYFbeRBF6nu+I6tr2Tf3u0q8RIEjNob/heKY/nh7drD/k7eeMFmSQgnTtCzLDcCu/XEnpW2wk4xCQ==",
++      "license": "MIT",
++      "dependencies": {
++        "debug": "^4.3.5",
++        "module-details-from-path": "^1.0.3"
++      },
++      "engines": {
++        "node": ">=9.3.0 || >=8.10.0 <9.0.0"
++      }
++    },
+     "node_modules/retry": {
+       "version": "0.13.1",
+       "resolved": "https://sfw.security.sentry.io/npm/retry/-/retry-0.13.1.tgz",
+diff --git a/apps/slack-agent/package.json b/apps/slack-agent/package.json
+index 12bcc95..e551739 100644
+--- a/apps/slack-agent/package.json
++++ b/apps/slack-agent/package.json
+@@ -12,6 +12,7 @@
+   },
+   "dependencies": {
+     "@ai-sdk/mistral": "4.0.30",
++    "@sentry/node": "^10.75.0",
+     "@slack/bolt": "^4.4.0",
+     "ai": "7.0.64",
+     "dotenv": "17.4.2",
+diff --git a/apps/slack-agent/src/agent.ts b/apps/slack-agent/src/agent.ts
+index fecc112..a31b455 100644
+--- a/apps/slack-agent/src/agent.ts
++++ b/apps/slack-agent/src/agent.ts
+@@ -35,9 +35,14 @@ export async function answer({
+     messages,
+     tools: createTools(DEMO_USER.id, conversationId),
+     stopWhen: isStepCount(5),
+-    // functionId names the agent in the AI SDK's telemetry.
++    // functionId names the agent in the AI SDK's telemetry and in Sentry's
++    // AI Agents dashboard. recordInputs/recordOutputs put the prompt, tool
++    // calls, tool results, and token usage on the gen_ai spans.
+     telemetry: {
++      isEnabled: true,
+       functionId: "slack-shopping-assistant",
++      recordInputs: true,
++      recordOutputs: true,
+     },
+     // Repeated turns in one conversation share the cache prefix.
+     providerOptions: {
+diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
+index 89c39d0..de3f6d3 100644
+--- a/apps/slack-agent/src/app.ts
++++ b/apps/slack-agent/src/app.ts
+@@ -1,3 +1,5 @@
++import "./instrument";
++import * as Sentry from "@sentry/node";
+ import { App } from "@slack/bolt";
+ import type { SayFn } from "@slack/bolt";
+ import type { AppMentionEvent, MessageEvent } from "@slack/types";
+@@ -14,9 +16,9 @@ const required = [
+ 
+ for (const name of required) {
+   if (!process.env[name]) {
+-    console.error(
+-      `${name} is not set. Copy .env.example to .env.local and fill it in.`,
+-    );
++    const message = `${name} is not set. Copy .env.example to .env.local and fill it in.`;
++    console.error(message);
++    Sentry.logger.error(message);
+     process.exit(1);
+   }
+ }
+@@ -43,14 +45,14 @@ app.event(
+     const conversationId = event.thread_ts ?? event.ts;
+     const text = stripMention(event.text ?? "");
+ 
+-    try {
+-      const messages = await loadThread({ client, event, conversationId, text });
+-      const reply = await answer({ messages, conversationId });
+-      await say({ text: reply, thread_ts: conversationId });
+-    } catch (error) {
+-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
+-      throw error;
+-    }
++    await handleMessage({
++      client,
++      say,
++      event,
++      conversationId,
++      text,
++      slackEvent: "app_mention",
++    });
+   },
+ );
+ 
+@@ -75,17 +77,62 @@ app.event(
+     const conversationId = event.thread_ts ?? event.ts;
+     const text = stripMention(event.text ?? "");
+ 
+-    try {
+-      const messages = await loadThread({ client, event, conversationId, text });
+-      const reply = await answer({ messages, conversationId });
+-      await say({ text: reply, thread_ts: conversationId });
+-    } catch (error) {
+-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
+-      throw error;
+-    }
++    await handleMessage({
++      client,
++      say,
++      event,
++      conversationId,
++      text,
++      slackEvent: "message.im",
++    });
+   },
+ );
+ 
++// Shared body for both handlers: wraps one Slack message in one Sentry
++// transaction, so the model call and tool calls the AI SDK's telemetry
++// produces nest inside it, and scopes the Sentry user to that message.
++async function handleMessage({
++  client,
++  say,
++  event,
++  conversationId,
++  text,
++  slackEvent,
++}: {
++  client: WebClient;
++  say: SayFn;
++  event: { channel: string; ts: string; thread_ts?: string; user?: string };
++  conversationId: string;
++  text: string;
++  slackEvent: "app_mention" | "message.im";
++}): Promise<void> {
++  await Sentry.startSpan(
++    {
++      name: "slack.message",
++      op: "slack.message",
++      forceTransaction: true,
++      attributes: {
++        "gen_ai.conversation.id": conversationId,
++        "slack.channel": event.channel,
++        "slack.event": slackEvent,
++      },
++    },
++    async () => {
++      Sentry.getCurrentScope().setUser(event.user ? { id: event.user } : null);
++
++      try {
++        const messages = await loadThread({ client, event, conversationId, text });
++        const reply = await answer({ messages, conversationId });
++        await say({ text: reply, thread_ts: conversationId });
++      } catch (error) {
++        Sentry.captureException(error);
++        await say({ text: ERROR_REPLY, thread_ts: conversationId });
++        throw error;
++      }
++    },
++  );
++}
++
+ // Mentions arrive as "<@U0123> show me the shoes collection" - strip the
+ // leading mention so the model sees a plain question.
+ function stripMention(text: string): string {
+@@ -132,5 +179,16 @@ async function loadThread({
+   return history;
+ }
+ 
++// Flush queued events before exiting so a Ctrl-C during the workshop
++// doesn't drop the in-flight trace or log lines.
++for (const signal of ["SIGINT", "SIGTERM"] as const) {
++  process.on(signal, async () => {
++    await Sentry.flush(2000);
++    process.exit(0);
++  });
++}
++
+ await app.start();
++// Keep this line on stdout: the lab tells attendees to wait for it.
+ console.log("Slack agent connected over Socket Mode");
++Sentry.logger.info("Slack agent connected over Socket Mode");
+diff --git a/apps/slack-agent/src/instrument.ts b/apps/slack-agent/src/instrument.ts
+new file mode 100644
+index 0000000..eef24f2
+--- /dev/null
++++ b/apps/slack-agent/src/instrument.ts
+@@ -0,0 +1,18 @@
++import * as Sentry from "@sentry/node";
++
++Sentry.init({
++  dsn: process.env.SENTRY_DSN,
++  environment: process.env.SENTRY_ENVIRONMENT ?? "development",
++  release: process.env.SENTRY_RELEASE,
++  // Sample every trace and send full request context — this is a demo; dial
++  // down for real traffic.
++  tracesSampleRate: 1,
++  sendDefaultPii: true,
++  enableLogs: true,
++  integrations: [
++    // Records prompts, tool calls, tool results, and token usage on the
++    // gen_ai spans the Vercel AI SDK's telemetry produces. Postgres spans
++    // come from the SDK's built-in pg integration; no manual db spans.
++    Sentry.vercelAIIntegration({ recordInputs: true, recordOutputs: true }),
++  ],
++});
