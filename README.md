@@ -13,7 +13,7 @@ to ask for and how to check the result.
 | --- | --- | --- | --- |
 | `apps/storefront` | Browser chat on a Next.js app | Next.js, Vercel AI SDK, Postgres on Neon | Hands-on |
 | `apps/slack-agent` | Long-lived Slack bot | Node, Bolt (Socket Mode), Vercel AI SDK, same Postgres | Follow along |
-| `apps/pr-reviewer` | GitHub Actions job | Node, Flue, Vercel AI SDK | Follow along |
+| `apps/pr-reviewer` | GitHub Actions job | Node, Flue (OpenTelemetry), Mistral | Follow along |
 
 All three call Mistral through the Vercel AI SDK. Mistral's free Experiment
 plan covers the workshop. Neon's instant Postgres needs no account.
