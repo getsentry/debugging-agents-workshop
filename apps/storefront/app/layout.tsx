@@ -38,7 +38,7 @@ export default async function RootLayout({
           <Navbar />
           <main>
             {children}
-            <Toaster closeButton />
+            <Toaster closeButton position="top-center" />
             <WelcomeToast />
           </main>
           {/* useChat creates a random per-visitor chat id, so the assistant
