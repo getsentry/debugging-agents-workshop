@@ -38,20 +38,173 @@ index 9a38d40..bc70b6a 100644
 +tool spans nested underneath. `environment` is `github-actions` in CI and
 +`local` otherwise; `release` is the workflow's `GITHUB_SHA`.
 diff --git a/apps/pr-reviewer/package-lock.json b/apps/pr-reviewer/package-lock.json
-index 73f8819..ee8963b 100644
+index 73f8819..fd4af72 100644
 --- a/apps/pr-reviewer/package-lock.json
 +++ b/apps/pr-reviewer/package-lock.json
 @@ -6,7 +6,9 @@
  		"": {
  			"name": "pr-reviewer",
  			"dependencies": {
-+				"@flue/opentelemetry": "^2.0.3",
++				"@flue/opentelemetry": "2.0.3",
  				"@flue/runtime": "2.0.3",
-+				"@sentry/node": "^10.75.0",
++				"@sentry/node": "11.0.0-rc.0",
  				"valibot": "1.4.2"
  			},
  			"devDependencies": {
-@@ -1370,6 +1372,19 @@
+@@ -624,6 +626,152 @@
+ 				"node": "^22.18.0 || >=24.11.0"
+ 			}
+ 		},
++		"node_modules/@babel/helper-module-imports": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-module-imports/-/helper-module-imports-7.29.7.tgz",
++			"integrity": "sha512-ejHwrQQYcm9xnTivShn2IDOlIzInN34AXskvq9QicvCtEzq1Vzclu/tKF8Jq1Cg8JG2GL6/EmjgsCT7lXepE3g==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/traverse": "^7.29.7",
++				"@babel/types": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/code-frame": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/code-frame/-/code-frame-7.29.7.tgz",
++			"integrity": "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/helper-validator-identifier": "^7.29.7",
++				"js-tokens": "^4.0.0",
++				"picocolors": "^1.1.1"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/generator": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/generator/-/generator-7.29.8.tgz",
++			"integrity": "sha512-gZbepsdh3WDtgZKWL+vTPh71LSBrm/Y4/QDZBVCcYfmeTEEuoOYwlSy+G1StfJg+/Zy550u/3TATbm7qDbbMtg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/parser": "^7.29.8",
++				"@babel/types": "^7.29.8",
++				"@jridgewell/gen-mapping": "^0.3.12",
++				"@jridgewell/trace-mapping": "^0.3.28",
++				"jsesc": "^3.0.2"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/helper-globals": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-globals/-/helper-globals-7.29.7.tgz",
++			"integrity": "sha512-3nQVUAtvkKH9zahfWgw96Jc/uFOmjACE1kQz82E2lqWmHBgjzbNlsC22nuQTfahmWeQtTq5nQ/4Nnd2A1wj4zA==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/helper-string-parser": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-string-parser/-/helper-string-parser-7.29.7.tgz",
++			"integrity": "sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/helper-validator-identifier": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-validator-identifier/-/helper-validator-identifier-7.29.7.tgz",
++			"integrity": "sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/parser": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/parser/-/parser-7.29.8.tgz",
++			"integrity": "sha512-E8lTAYNB1KW+FH+VGJuZM1ioAx2E6oVlvQFRrf5P8ZZmsiJXYAD9vTFV7yyEURNzgh1dFqMZuO6tUwcARbqFCA==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/types": "^7.29.8"
++			},
++			"bin": {
++				"parser": "bin/babel-parser.js"
++			},
++			"engines": {
++				"node": ">=6.0.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/template": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/template/-/template-7.29.7.tgz",
++			"integrity": "sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/code-frame": "^7.29.7",
++				"@babel/parser": "^7.29.7",
++				"@babel/types": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/traverse": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/traverse/-/traverse-7.29.8.tgz",
++			"integrity": "sha512-I5z7H3bf/41ktsNVLtpN0wAa336HkqIHQ5BuPLEhTkt1jVSyZpeNKIzTgEWmlxjdg81R0IgUCcaE+Ok3NvrfZg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/code-frame": "^7.29.7",
++				"@babel/generator": "^7.29.8",
++				"@babel/helper-globals": "^7.29.7",
++				"@babel/parser": "^7.29.8",
++				"@babel/template": "^7.29.7",
++				"@babel/types": "^7.29.8",
++				"debug": "^4.3.1"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@babel/types": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/types/-/types-7.29.8.tgz",
++			"integrity": "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/helper-string-parser": "^7.29.7",
++				"@babel/helper-validator-identifier": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/@jridgewell/gen-mapping": {
++			"version": "0.3.13",
++			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz",
++			"integrity": "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==",
++			"license": "MIT",
++			"dependencies": {
++				"@jridgewell/sourcemap-codec": "^1.5.0",
++				"@jridgewell/trace-mapping": "^0.3.24"
++			}
++		},
++		"node_modules/@babel/helper-module-imports/node_modules/js-tokens": {
++			"version": "4.0.0",
++			"resolved": "https://sfw.security.sentry.io/npm/js-tokens/-/js-tokens-4.0.0.tgz",
++			"integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==",
++			"license": "MIT"
++		},
+ 		"node_modules/@babel/helper-optimise-call-expression": {
+ 			"version": "8.0.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-optimise-call-expression/-/helper-optimise-call-expression-8.0.0.tgz",
+@@ -1370,6 +1518,19 @@
  				"node": ">=22.19.0"
  			}
  		},
@@ -71,190 +224,369 @@ index 73f8819..ee8963b 100644
  		"node_modules/@flue/runtime": {
  			"version": "2.0.3",
  			"resolved": "https://sfw.security.sentry.io/npm/@flue/runtime/-/runtime-2.0.3.tgz",
-@@ -1625,6 +1640,101 @@
- 				"node": ">=8.0.0"
+@@ -1481,11 +1642,30 @@
+ 				"@jridgewell/trace-mapping": "^0.3.24"
  			}
  		},
-+		"node_modules/@opentelemetry/api-logs": {
-+			"version": "0.220.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/api-logs/-/api-logs-0.220.0.tgz",
-+			"integrity": "sha512-CmVa4ImJ+ynfrPMNaAXHET6Bhb44SwzmfyVJFq9ni2jgXJR/l7C6gfVFddNmHP+ZOkP9cf4f9DBe68qVLTHc9w==",
-+			"license": "Apache-2.0",
++		"node_modules/@jridgewell/remapping": {
++			"version": "2.3.5",
++			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/remapping/-/remapping-2.3.5.tgz",
++			"integrity": "sha512-LI9u/+laYG4Ds1TDKSJW2YPrIlcVYOwi2fUC6xB43lueCjgxV4lffOCZCtYFiH6TNOX+tQKXx97T4IKHbhyHEQ==",
++			"license": "MIT",
 +			"dependencies": {
-+				"@opentelemetry/api": "^1.3.0"
-+			},
-+			"engines": {
-+				"node": ">=8.0.0"
++				"@jridgewell/gen-mapping": "^0.3.5",
++				"@jridgewell/trace-mapping": "^0.3.24"
 +			}
 +		},
-+		"node_modules/@opentelemetry/core": {
-+			"version": "2.11.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/core/-/core-2.11.0.tgz",
-+			"integrity": "sha512-7YP44XH0tV6+Mb54x2YGf84i7yi+31MBZlE8JwvozkxyTvXbSp10X7cI7YE49ChJ3shMJoBmCJF3+1QFBJctGA==",
-+			"license": "Apache-2.0",
++		"node_modules/@jridgewell/remapping/node_modules/@jridgewell/gen-mapping": {
++			"version": "0.3.13",
++			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz",
++			"integrity": "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==",
++			"license": "MIT",
 +			"dependencies": {
-+				"@opentelemetry/semantic-conventions": "^1.29.0"
-+			},
-+			"engines": {
-+				"node": "^18.19.0 || >=20.6.0"
-+			},
-+			"peerDependencies": {
-+				"@opentelemetry/api": ">=1.0.0 <1.10.0"
++				"@jridgewell/sourcemap-codec": "^1.5.0",
++				"@jridgewell/trace-mapping": "^0.3.24"
 +			}
 +		},
-+		"node_modules/@opentelemetry/instrumentation": {
-+			"version": "0.220.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/instrumentation/-/instrumentation-0.220.0.tgz",
-+			"integrity": "sha512-xQx3E2WxP1mDvKzxLxX+CTCtNLa560YJZ3087qYHerl2YmiKpv7AH+dAy7vmx+eVrZ5BwhfWUAVoKOoxCNHcpw==",
-+			"license": "Apache-2.0",
-+			"dependencies": {
-+				"@opentelemetry/api-logs": "0.220.0",
-+				"import-in-the-middle": "^3.0.0",
-+				"require-in-the-middle": "^8.0.0"
-+			},
-+			"engines": {
-+				"node": "^18.19.0 || >=20.6.0"
-+			},
-+			"peerDependencies": {
-+				"@opentelemetry/api": "^1.3.0"
-+			}
-+		},
-+		"node_modules/@opentelemetry/resources": {
-+			"version": "2.11.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/resources/-/resources-2.11.0.tgz",
-+			"integrity": "sha512-Ie7+8q8MDF4FAEQCKVMTx3ReUvxiIAgIiiW3c9JdmP8+HMcDy20puT+AHjexnExgnbvBxjQ9fjkFDWrikJ2jQA==",
-+			"license": "Apache-2.0",
-+			"dependencies": {
-+				"@opentelemetry/core": "2.11.0",
-+				"@opentelemetry/semantic-conventions": "^1.29.0"
-+			},
-+			"engines": {
-+				"node": "^18.19.0 || >=20.6.0"
-+			},
-+			"peerDependencies": {
-+				"@opentelemetry/api": ">=1.3.0 <1.10.0"
-+			}
-+		},
-+		"node_modules/@opentelemetry/sdk-trace": {
-+			"version": "2.11.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/sdk-trace/-/sdk-trace-2.11.0.tgz",
-+			"integrity": "sha512-fFnTqGm8/G73GQVnxYi7LXa1ZVYEUvgL6XI1LpvV0bPC7WQ/ZGgKxCSl8FnlZBKto9JHHEFTO6s6CUpvvtwFrA==",
-+			"license": "Apache-2.0",
-+			"dependencies": {
-+				"@opentelemetry/core": "2.11.0",
-+				"@opentelemetry/resources": "2.11.0",
-+				"@opentelemetry/semantic-conventions": "^1.29.0"
-+			},
-+			"engines": {
-+				"node": "^18.19.0 || >=20.6.0"
-+			},
-+			"peerDependencies": {
-+				"@opentelemetry/api": ">=1.3.0 <1.10.0"
-+			}
-+		},
-+		"node_modules/@opentelemetry/sdk-trace-base": {
-+			"version": "2.11.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/sdk-trace-base/-/sdk-trace-base-2.11.0.tgz",
-+			"integrity": "sha512-H19x/TX/LZdqiYOjM7fqtSxwlplC5pgelavqbQdHbhdq0q/AI/TGkM2dfGuuynTXmJPeF2HoZVoPDu+TGoW78A==",
-+			"license": "Apache-2.0",
-+			"dependencies": {
-+				"@opentelemetry/core": "2.11.0",
-+				"@opentelemetry/resources": "2.11.0",
-+				"@opentelemetry/sdk-trace": "2.11.0",
-+				"@opentelemetry/semantic-conventions": "^1.29.0"
-+			},
-+			"engines": {
-+				"node": "^18.19.0 || >=20.6.0"
-+			},
-+			"peerDependencies": {
-+				"@opentelemetry/api": ">=1.3.0 <1.10.0"
-+			}
-+		},
- 		"node_modules/@opentelemetry/semantic-conventions": {
- 			"version": "1.43.0",
- 			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/semantic-conventions/-/semantic-conventions-1.43.0.tgz",
-@@ -2359,6 +2469,126 @@
+ 		"node_modules/@jridgewell/resolve-uri": {
+ 			"version": "3.1.2",
+ 			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/resolve-uri/-/resolve-uri-3.1.2.tgz",
+ 			"integrity": "sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==",
+-			"dev": true,
+ 			"license": "MIT",
+ 			"engines": {
+ 				"node": ">=6.0.0"
+@@ -1495,14 +1675,12 @@
+ 			"version": "1.6.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.6.0.tgz",
+ 			"integrity": "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==",
+-			"dev": true,
+ 			"license": "MIT"
+ 		},
+ 		"node_modules/@jridgewell/trace-mapping": {
+ 			"version": "0.3.31",
+ 			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz",
+ 			"integrity": "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==",
+-			"dev": true,
+ 			"license": "MIT",
+ 			"dependencies": {
+ 				"@jridgewell/resolve-uri": "^3.1.0",
+@@ -2359,6 +2537,381 @@
  			"dev": true,
  			"license": "MIT"
  		},
++		"node_modules/@sentry/bundler-plugins": {
++			"version": "11.0.0-rc.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/bundler-plugins/-/bundler-plugins-11.0.0-rc.0.tgz",
++			"integrity": "sha512-mfRtTo7MNMgAghHsTzcRV5XwdpV+YqdqA4OGgOSRqLEY5H1jxfO8j+orEjUvLk8pCgR4Y1cORsXKqpVXI4nh3w==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/core": "^7.18.5",
++				"@sentry/core": "11.0.0-rc.0",
++				"dotenv": "^17.4.2",
++				"glob": "^13.0.6",
++				"magic-string": "~0.30.8",
++				"sentry": "^0.44.0",
++				"supports-color": "^8.1.1"
++			},
++			"engines": {
++				"node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
++			},
++			"peerDependencies": {
++				"rollup": ">=3.2.0",
++				"webpack": ">=5.0.0"
++			},
++			"peerDependenciesMeta": {
++				"rollup": {
++					"optional": true
++				},
++				"webpack": {
++					"optional": true
++				}
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/code-frame": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/code-frame/-/code-frame-7.29.7.tgz",
++			"integrity": "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/helper-validator-identifier": "^7.29.7",
++				"js-tokens": "^4.0.0",
++				"picocolors": "^1.1.1"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/compat-data": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/compat-data/-/compat-data-7.29.7.tgz",
++			"integrity": "sha512-locTkQyKvwIEgBzVrn8693ebc97F2U8ZHjbXwDXJ5Fn2TCpNwTlKcaKLkdHop5c/icOFE7qt7Q9JC5hnKNa6Gg==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/core": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/core/-/core-7.29.7.tgz",
++			"integrity": "sha512-RgHBCvtjbOK2gXSNBNIkNoEc9qoVEtau3hj8gEqKQuL3HZAibKarWFEI3Lfm6EYKkLalOh8eSrj9b+ch9H/VBA==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/code-frame": "^7.29.7",
++				"@babel/generator": "^7.29.7",
++				"@babel/helper-compilation-targets": "^7.29.7",
++				"@babel/helper-module-transforms": "^7.29.7",
++				"@babel/helpers": "^7.29.7",
++				"@babel/parser": "^7.29.7",
++				"@babel/template": "^7.29.7",
++				"@babel/traverse": "^7.29.7",
++				"@babel/types": "^7.29.7",
++				"@jridgewell/remapping": "^2.3.5",
++				"convert-source-map": "^2.0.0",
++				"debug": "^4.1.0",
++				"gensync": "^1.0.0-beta.2",
++				"json5": "^2.2.3",
++				"semver": "^6.3.1"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			},
++			"funding": {
++				"type": "opencollective",
++				"url": "https://opencollective.com/babel"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/generator": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/generator/-/generator-7.29.8.tgz",
++			"integrity": "sha512-gZbepsdh3WDtgZKWL+vTPh71LSBrm/Y4/QDZBVCcYfmeTEEuoOYwlSy+G1StfJg+/Zy550u/3TATbm7qDbbMtg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/parser": "^7.29.8",
++				"@babel/types": "^7.29.8",
++				"@jridgewell/gen-mapping": "^0.3.12",
++				"@jridgewell/trace-mapping": "^0.3.28",
++				"jsesc": "^3.0.2"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helper-compilation-targets": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-compilation-targets/-/helper-compilation-targets-7.29.7.tgz",
++			"integrity": "sha512-wem6WaBj4NaVYVdNhLPPVacES6ZJ+KBBfSkTMD3YZxbP3rm3Di85tJU5ljaUNhaOynt+Aj0xruhYuzQBt8n71g==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/compat-data": "^7.29.7",
++				"@babel/helper-validator-option": "^7.29.7",
++				"browserslist": "^4.24.0",
++				"lru-cache": "^5.1.1",
++				"semver": "^6.3.1"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helper-globals": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-globals/-/helper-globals-7.29.7.tgz",
++			"integrity": "sha512-3nQVUAtvkKH9zahfWgw96Jc/uFOmjACE1kQz82E2lqWmHBgjzbNlsC22nuQTfahmWeQtTq5nQ/4Nnd2A1wj4zA==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helper-module-transforms": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-module-transforms/-/helper-module-transforms-7.29.7.tgz",
++			"integrity": "sha512-UPUVSyXbOh627KiCIGQSgwWzGeBKLkaJ9PJEdrngIwMSzxLR4jS4+f1f1jb7VzBbg8nFLaYotvVPFCTqdrmTAg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/helper-module-imports": "^7.29.7",
++				"@babel/helper-validator-identifier": "^7.29.7",
++				"@babel/traverse": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			},
++			"peerDependencies": {
++				"@babel/core": "^7.0.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helper-string-parser": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-string-parser/-/helper-string-parser-7.29.7.tgz",
++			"integrity": "sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helper-validator-identifier": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-validator-identifier/-/helper-validator-identifier-7.29.7.tgz",
++			"integrity": "sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helper-validator-option": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helper-validator-option/-/helper-validator-option-7.29.7.tgz",
++			"integrity": "sha512-N9ZErrD+yW5geCDtBqnOoxmR8+tNKiGuxKlDpuJxfsqpa2dFcexaziGAE/qoHLiDDreVNMupxGmSoNlyvsA3gw==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/helpers": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/helpers/-/helpers-7.29.7.tgz",
++			"integrity": "sha512-1k2lAGRMfHTcwuNYcCNUmaUffmQv8KWMfh2iJUUeRlwlwH4FdNG7mfPI10NPfLHJFThE4Tyr4mv7kTNZOiPuBg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/template": "^7.29.7",
++				"@babel/types": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/parser": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/parser/-/parser-7.29.8.tgz",
++			"integrity": "sha512-E8lTAYNB1KW+FH+VGJuZM1ioAx2E6oVlvQFRrf5P8ZZmsiJXYAD9vTFV7yyEURNzgh1dFqMZuO6tUwcARbqFCA==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/types": "^7.29.8"
++			},
++			"bin": {
++				"parser": "bin/babel-parser.js"
++			},
++			"engines": {
++				"node": ">=6.0.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/template": {
++			"version": "7.29.7",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/template/-/template-7.29.7.tgz",
++			"integrity": "sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/code-frame": "^7.29.7",
++				"@babel/parser": "^7.29.7",
++				"@babel/types": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/traverse": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/traverse/-/traverse-7.29.8.tgz",
++			"integrity": "sha512-I5z7H3bf/41ktsNVLtpN0wAa336HkqIHQ5BuPLEhTkt1jVSyZpeNKIzTgEWmlxjdg81R0IgUCcaE+Ok3NvrfZg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/code-frame": "^7.29.7",
++				"@babel/generator": "^7.29.8",
++				"@babel/helper-globals": "^7.29.7",
++				"@babel/parser": "^7.29.8",
++				"@babel/template": "^7.29.7",
++				"@babel/types": "^7.29.8",
++				"debug": "^4.3.1"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@babel/types": {
++			"version": "7.29.8",
++			"resolved": "https://sfw.security.sentry.io/npm/@babel/types/-/types-7.29.8.tgz",
++			"integrity": "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==",
++			"license": "MIT",
++			"dependencies": {
++				"@babel/helper-string-parser": "^7.29.7",
++				"@babel/helper-validator-identifier": "^7.29.7"
++			},
++			"engines": {
++				"node": ">=6.9.0"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/@jridgewell/gen-mapping": {
++			"version": "0.3.13",
++			"resolved": "https://sfw.security.sentry.io/npm/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz",
++			"integrity": "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==",
++			"license": "MIT",
++			"dependencies": {
++				"@jridgewell/sourcemap-codec": "^1.5.0",
++				"@jridgewell/trace-mapping": "^0.3.24"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/js-tokens": {
++			"version": "4.0.0",
++			"resolved": "https://sfw.security.sentry.io/npm/js-tokens/-/js-tokens-4.0.0.tgz",
++			"integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==",
++			"license": "MIT"
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/lru-cache": {
++			"version": "5.1.1",
++			"resolved": "https://sfw.security.sentry.io/npm/lru-cache/-/lru-cache-5.1.1.tgz",
++			"integrity": "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==",
++			"license": "ISC",
++			"dependencies": {
++				"yallist": "^3.0.2"
++			}
++		},
++		"node_modules/@sentry/bundler-plugins/node_modules/magic-string": {
++			"version": "0.30.21",
++			"resolved": "https://sfw.security.sentry.io/npm/magic-string/-/magic-string-0.30.21.tgz",
++			"integrity": "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==",
++			"license": "MIT",
++			"dependencies": {
++				"@jridgewell/sourcemap-codec": "^1.5.5"
++			}
++		},
 +		"node_modules/@sentry/conventions": {
-+			"version": "0.16.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@sentry/conventions/-/conventions-0.16.0.tgz",
-+			"integrity": "sha512-fO9PLmHdVURcSPUpWCItWAtgKiMwGdJHbovoSEyLplX5sxs2ugvI4CBPTrkkgqhObnZOD0CnWBKDzSVQYBKEyQ==",
++			"version": "0.23.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/conventions/-/conventions-0.23.0.tgz",
++			"integrity": "sha512-+Euyo7CNVecoOusgUnq27oV97oshifgceKfnGnuKfXrPUVWA/cisvii3E1rlvy2yBrKvl9K1gCEo1Jqog5zjEQ==",
 +			"license": "MIT",
 +			"engines": {
 +				"node": ">=14"
 +			}
 +		},
 +		"node_modules/@sentry/core": {
-+			"version": "10.75.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@sentry/core/-/core-10.75.0.tgz",
-+			"integrity": "sha512-5wDQpQqjJ6RHdPR+z6Q+47XlwoxRKBv0yyB0LKHqL/1azPOQbR+nllyLmmQDcoJpaksuLSmLA1q6hFX7gjDT2w==",
++			"version": "11.0.0-rc.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/core/-/core-11.0.0-rc.0.tgz",
++			"integrity": "sha512-6KXLKGq1YgysUIzeD0cYQH/8Tg62V+UJV1d9FVNvKb0HnRgbiO9VWCCm1wGyYSENdGPdSa9zOOnk5ZC7WxLaAw==",
 +			"license": "MIT",
 +			"dependencies": {
-+				"@sentry/conventions": "^0.16.0"
++				"@sentry/conventions": "^0.23.0"
 +			},
 +			"engines": {
-+				"node": ">=18"
++				"node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
 +			}
 +		},
 +		"node_modules/@sentry/node": {
-+			"version": "10.75.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@sentry/node/-/node-10.75.0.tgz",
-+			"integrity": "sha512-XdYW+SEiscQnuugh1hMldfnHurmleKSTSDqgfro6Y1yd7s0r2csnZ5/SEYxIeL4lSl1QXg1lIA1pBmAXjcdnKA==",
++			"version": "11.0.0-rc.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/node/-/node-11.0.0-rc.0.tgz",
++			"integrity": "sha512-hztnJEx8Fcyp0wNJgVbrgWIy9jgkefo7A3c7Y7r7wrCwCl5gKwzzo53XYOkY2lf/rjTLaJCG8b21VjHaFldOZw==",
 +			"license": "MIT",
 +			"dependencies": {
 +				"@opentelemetry/api": "^1.9.1",
-+				"@opentelemetry/instrumentation": "^0.220.0",
-+				"@opentelemetry/sdk-trace-base": "^2.9.0",
-+				"@sentry/conventions": "^0.16.0",
-+				"@sentry/core": "10.75.0",
-+				"@sentry/node-core": "10.75.0",
-+				"@sentry/opentelemetry": "10.75.0",
-+				"@sentry/server-utils": "10.75.0",
-+				"import-in-the-middle": "^3.0.0"
++				"@sentry/bundler-plugins": "11.0.0-rc.0",
++				"@sentry/conventions": "^0.23.0",
++				"@sentry/core": "11.0.0-rc.0",
++				"@sentry/opentelemetry": "11.0.0-rc.0",
++				"@sentry/server-runtime-injection": "11.0.0-rc.0",
++				"@sentry/server-utils": "11.0.0-rc.0"
 +			},
 +			"engines": {
-+				"node": ">=18"
-+			}
-+		},
-+		"node_modules/@sentry/node-core": {
-+			"version": "10.75.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@sentry/node-core/-/node-core-10.75.0.tgz",
-+			"integrity": "sha512-+E3KSX1oMqhpWQ23hj6NblIVUzLy3T2oceU7DfMX1s1ar+npaQZxR5K0/cMGcQgS1LLm8Jqwqo/lrZlKTCDm5A==",
-+			"license": "MIT",
-+			"dependencies": {
-+				"@sentry/conventions": "^0.16.0",
-+				"@sentry/core": "10.75.0",
-+				"@sentry/opentelemetry": "10.75.0",
-+				"import-in-the-middle": "^3.0.0"
-+			},
-+			"engines": {
-+				"node": ">=18"
-+			},
-+			"peerDependencies": {
-+				"@opentelemetry/api": "^1.9.0",
-+				"@opentelemetry/core": "^1.30.1 || ^2.1.0",
-+				"@opentelemetry/exporter-trace-otlp-http": ">=0.57.0 <1",
-+				"@opentelemetry/instrumentation": ">=0.57.1 <1",
-+				"@opentelemetry/sdk-trace-base": "^1.30.1 || ^2.1.0"
-+			},
-+			"peerDependenciesMeta": {
-+				"@opentelemetry/api": {
-+					"optional": true
-+				},
-+				"@opentelemetry/core": {
-+					"optional": true
-+				},
-+				"@opentelemetry/exporter-trace-otlp-http": {
-+					"optional": true
-+				},
-+				"@opentelemetry/instrumentation": {
-+					"optional": true
-+				},
-+				"@opentelemetry/sdk-trace-base": {
-+					"optional": true
-+				}
++				"node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
 +			}
 +		},
 +		"node_modules/@sentry/node/node_modules/@opentelemetry/api": {
@@ -267,141 +599,442 @@ index 73f8819..ee8963b 100644
 +			}
 +		},
 +		"node_modules/@sentry/opentelemetry": {
-+			"version": "10.75.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@sentry/opentelemetry/-/opentelemetry-10.75.0.tgz",
-+			"integrity": "sha512-reJoMtuHMuaiztoDVoaeitc22eHlTAvz2qpFhibWyzukJlF8oXB+o8EvDN9mmDDMedU89c//cXRcnPBlJvUxcw==",
++			"version": "11.0.0-rc.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/opentelemetry/-/opentelemetry-11.0.0-rc.0.tgz",
++			"integrity": "sha512-28Yy+Qoo84Ckxu40f2sB/NE+J2uacVkT+rD/GnK3+ExZfW/o2nV7eotIwKUprhoHM1w8EaMQusjZAMTzHc4geQ==",
 +			"license": "MIT",
 +			"dependencies": {
-+				"@sentry/conventions": "^0.16.0",
-+				"@sentry/core": "10.75.0"
++				"@sentry/conventions": "^0.23.0",
++				"@sentry/core": "11.0.0-rc.0"
 +			},
 +			"engines": {
-+				"node": ">=18"
++				"node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
 +			},
 +			"peerDependencies": {
-+				"@opentelemetry/api": "^1.9.0",
-+				"@opentelemetry/core": "^1.30.1 || ^2.1.0",
-+				"@opentelemetry/sdk-trace-base": "^1.30.1 || ^2.1.0"
++				"@opentelemetry/api": "^1.9.0"
++			}
++		},
++		"node_modules/@sentry/server-runtime-injection": {
++			"version": "11.0.0-rc.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/server-runtime-injection/-/server-runtime-injection-11.0.0-rc.0.tgz",
++			"integrity": "sha512-x8XppxyzDZxweoHlfsW0l12ghquvp79o2UNXOcXETRb+40ud+RF+YdPtnv4yvsrByXScPkNzKVdJSjxevJCcrA==",
++			"license": "MIT",
++			"dependencies": {
++				"@sentry/core": "11.0.0-rc.0",
++				"@sentry/server-utils": "11.0.0-rc.0"
++			},
++			"engines": {
++				"node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
 +			}
 +		},
 +		"node_modules/@sentry/server-utils": {
-+			"version": "10.75.0",
-+			"resolved": "https://sfw.security.sentry.io/npm/@sentry/server-utils/-/server-utils-10.75.0.tgz",
-+			"integrity": "sha512-7fIa9vFGNzB13hmxl8Sip3xImSkqpc4wETzuQ7CLzVOwPvwI6y/gVEm0pxRhtJSq8SzfOp26eJWl80u8v78Osg==",
++			"version": "11.0.0-rc.0",
++			"resolved": "https://sfw.security.sentry.io/npm/@sentry/server-utils/-/server-utils-11.0.0-rc.0.tgz",
++			"integrity": "sha512-0+nsGmRdz8U+U5Cbe52FVfsBztcSY8v7u37id3lsEOktZQi8uJRQShp7BgvD8+ReXEuoVK/L2w7LxzTdtmxQig==",
 +			"license": "MIT",
 +			"dependencies": {
-+				"@sentry/conventions": "^0.16.0",
-+				"@sentry/core": "10.75.0"
++				"@opentelemetry/api": "^1.9.1",
++				"@sentry/conventions": "^0.23.0",
++				"@sentry/core": "11.0.0-rc.0"
 +			},
 +			"engines": {
-+				"node": ">=18"
++				"node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
++			}
++		},
++		"node_modules/@sentry/server-utils/node_modules/@opentelemetry/api": {
++			"version": "1.9.1",
++			"resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/api/-/api-1.9.1.tgz",
++			"integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==",
++			"license": "Apache-2.0",
++			"engines": {
++				"node": ">=8.0.0"
 +			}
 +		},
  		"node_modules/@smithy/core": {
  			"version": "3.34.1",
  			"resolved": "https://sfw.security.sentry.io/npm/@smithy/core/-/core-3.34.1.tgz",
-@@ -3206,6 +3436,12 @@
- 			"license": "CC-BY-4.0",
- 			"peer": true
+@@ -2999,6 +3552,15 @@
+ 			"integrity": "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==",
+ 			"license": "Python-2.0"
  		},
-+		"node_modules/cjs-module-lexer": {
-+			"version": "2.2.1",
-+			"resolved": "https://sfw.security.sentry.io/npm/cjs-module-lexer/-/cjs-module-lexer-2.2.1.tgz",
-+			"integrity": "sha512-Ca8swihM+/4yKecYHY52kgJd300hi2lADU/a1RxNTRe+RJ9jvqQlESpbz9DnG9mowez8qwXHB8qYdIUw9e+F5Q==",
-+			"license": "MIT"
++		"node_modules/balanced-match": {
++			"version": "4.0.4",
++			"resolved": "https://sfw.security.sentry.io/npm/balanced-match/-/balanced-match-4.0.4.tgz",
++			"integrity": "sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==",
++			"license": "MIT",
++			"engines": {
++				"node": "18 || 20 || >=22"
++			}
 +		},
+ 		"node_modules/base64-js": {
+ 			"version": "1.5.1",
+ 			"resolved": "https://sfw.security.sentry.io/npm/base64-js/-/base64-js-1.5.1.tgz",
+@@ -3023,9 +3585,7 @@
+ 			"version": "2.11.24",
+ 			"resolved": "https://sfw.security.sentry.io/npm/baseline-browser-mapping/-/baseline-browser-mapping-2.11.24.tgz",
+ 			"integrity": "sha512-hYrgxie335U08WqICoGqKRzV1HFXv6zdxwJE4ekCb80CM9a0SVVsN4QPwT67RraRo+9h8IATk6uxHJw7QSkdOg==",
+-			"dev": true,
+ 			"license": "Apache-2.0",
+-			"peer": true,
+ 			"bin": {
+ 				"baseline-browser-mapping": "dist/cli.cjs"
+ 			},
+@@ -3089,11 +3649,22 @@
+ 			"integrity": "sha512-tzPjzCxygAKWFOJP011oxFHs57HzIhOEracIgAePE4pqB3LikALKnSzUyU4MGs9/iCEUuHlAJTjTc5M+u7YEGg==",
+ 			"license": "MIT"
+ 		},
++		"node_modules/brace-expansion": {
++			"version": "5.0.12",
++			"resolved": "https://sfw.security.sentry.io/npm/brace-expansion/-/brace-expansion-5.0.12.tgz",
++			"integrity": "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==",
++			"license": "MIT",
++			"dependencies": {
++				"balanced-match": "^4.0.2"
++			},
++			"engines": {
++				"node": "20 || >=22"
++			}
++		},
+ 		"node_modules/browserslist": {
+ 			"version": "4.29.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/browserslist/-/browserslist-4.29.0.tgz",
+ 			"integrity": "sha512-3GSvyjvDI4Dur1Meg2BekJquu5uF+9R9a1+5M1Mde192eZoXbeXjzgOsgqPS2V8D5wrrip0gR5Hf/GhWQ9ZzaA==",
+-			"dev": true,
+ 			"funding": [
+ 				{
+ 					"type": "opencollective",
+@@ -3109,7 +3680,6 @@
+ 				}
+ 			],
+ 			"license": "MIT",
+-			"peer": true,
+ 			"dependencies": {
+ 				"baseline-browser-mapping": "^2.11.23",
+ 				"caniuse-lite": "^1.0.30001810",
+@@ -3188,7 +3758,6 @@
+ 			"version": "1.0.30001810",
+ 			"resolved": "https://sfw.security.sentry.io/npm/caniuse-lite/-/caniuse-lite-1.0.30001810.tgz",
+ 			"integrity": "sha512-TITQPUkaz+aVk5GL6NhOdwk1aEaNTSDPsGFWrTuhKGtjTF70jL/Oht2W4c6rXUe5fu7Ie19VIahAXHIIiWWNeg==",
+-			"dev": true,
+ 			"funding": [
+ 				{
+ 					"type": "opencollective",
+@@ -3203,8 +3772,7 @@
+ 					"url": "https://github.com/sponsors/ai"
+ 				}
+ 			],
+-			"license": "CC-BY-4.0",
+-			"peer": true
++			"license": "CC-BY-4.0"
+ 		},
  		"node_modules/cliui": {
  			"version": "9.0.1",
- 			"resolved": "https://sfw.security.sentry.io/npm/cliui/-/cliui-9.0.1.tgz",
-@@ -3501,6 +3737,12 @@
+@@ -3269,9 +3837,7 @@
+ 			"version": "2.0.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/convert-source-map/-/convert-source-map-2.0.0.tgz",
+ 			"integrity": "sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==",
+-			"dev": true,
+-			"license": "MIT",
+-			"peer": true
++			"license": "MIT"
+ 		},
+ 		"node_modules/cookie": {
+ 			"version": "0.7.2",
+@@ -3409,6 +3975,18 @@
+ 				"node": ">=0.3.1"
+ 			}
+ 		},
++		"node_modules/dotenv": {
++			"version": "17.4.2",
++			"resolved": "https://sfw.security.sentry.io/npm/dotenv/-/dotenv-17.4.2.tgz",
++			"integrity": "sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==",
++			"license": "BSD-2-Clause",
++			"engines": {
++				"node": ">=12"
++			},
++			"funding": {
++				"url": "https://dotenvx.com"
++			}
++		},
+ 		"node_modules/dunder-proto": {
+ 			"version": "1.0.1",
+ 			"resolved": "https://sfw.security.sentry.io/npm/dunder-proto/-/dunder-proto-1.0.1.tgz",
+@@ -3446,9 +4024,7 @@
+ 			"version": "1.5.430",
+ 			"resolved": "https://sfw.security.sentry.io/npm/electron-to-chromium/-/electron-to-chromium-1.5.430.tgz",
+ 			"integrity": "sha512-e1QEj72Y4zd8RlNZVmoTg+iCOSVwpk05IOiiQwdrkwCSVlZfPthevErhE+nckGd2YbsXfp1SkisznhGVIXP2NQ==",
+-			"dev": true,
+-			"license": "ISC",
+-			"peer": true
++			"license": "ISC"
+ 		},
+ 		"node_modules/emoji-regex": {
+ 			"version": "10.6.0",
+@@ -3561,7 +4137,6 @@
+ 			"version": "3.2.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/escalade/-/escalade-3.2.0.tgz",
+ 			"integrity": "sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==",
+-			"dev": true,
+ 			"license": "MIT",
+ 			"engines": {
+ 				"node": ">=6"
+@@ -3868,9 +4443,7 @@
+ 			"version": "1.0.0-beta.2",
+ 			"resolved": "https://sfw.security.sentry.io/npm/gensync/-/gensync-1.0.0-beta.2.tgz",
+ 			"integrity": "sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==",
+-			"dev": true,
+ 			"license": "MIT",
+-			"peer": true,
+ 			"engines": {
+ 				"node": ">=6.9.0"
+ 			}
+@@ -3939,6 +4512,23 @@
  				"node": ">= 0.4"
  			}
  		},
-+		"node_modules/es-module-lexer": {
-+			"version": "3.0.2",
-+			"resolved": "https://sfw.security.sentry.io/npm/es-module-lexer/-/es-module-lexer-3.0.2.tgz",
-+			"integrity": "sha512-BuIB67FngDSyQ/dpQNOZybwdEBDUGJQvOqwWr4ha/ufYiqzuEwPkKO2zLhRAgay28tStRIHUeWmszZAJo3GCOg==",
-+			"license": "MIT"
-+		},
- 		"node_modules/es-object-atoms": {
- 			"version": "1.1.2",
- 			"resolved": "https://sfw.security.sentry.io/npm/es-object-atoms/-/es-object-atoms-1.1.2.tgz",
-@@ -4091,6 +4333,20 @@
- 				"node": ">= 4"
- 			}
- 		},
-+		"node_modules/import-in-the-middle": {
-+			"version": "3.5.1",
-+			"resolved": "https://sfw.security.sentry.io/npm/import-in-the-middle/-/import-in-the-middle-3.5.1.tgz",
-+			"integrity": "sha512-mPKuL8bPQzecui2KK6Gb+M8JvJoHnhS1FeYGa22QopBmlevF5F0FE6ued/B5EgHDeIoMTONIpDWWFKUPOG0DBQ==",
-+			"license": "Apache-2.0",
++		"node_modules/glob": {
++			"version": "13.0.6",
++			"resolved": "https://sfw.security.sentry.io/npm/glob/-/glob-13.0.6.tgz",
++			"integrity": "sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==",
++			"license": "BlueOak-1.0.0",
 +			"dependencies": {
-+				"cjs-module-lexer": "^2.2.0",
-+				"es-module-lexer": "^3.0.2",
-+				"module-details-from-path": "^1.0.4"
++				"minimatch": "^10.2.2",
++				"minipass": "^7.1.3",
++				"path-scurry": "^2.0.2"
 +			},
 +			"engines": {
-+				"node": ">=18"
++				"node": "18 || 20 || >=22"
++			},
++			"funding": {
++				"url": "https://github.com/sponsors/isaacs"
 +			}
 +		},
- 		"node_modules/import-meta-resolve": {
- 			"version": "4.2.0",
- 			"resolved": "https://sfw.security.sentry.io/npm/import-meta-resolve/-/import-meta-resolve-4.2.0.tgz",
-@@ -4710,6 +4966,12 @@
- 			"dev": true,
- 			"license": "MIT"
- 		},
-+		"node_modules/module-details-from-path": {
-+			"version": "1.0.4",
-+			"resolved": "https://sfw.security.sentry.io/npm/module-details-from-path/-/module-details-from-path-1.0.4.tgz",
-+			"integrity": "sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==",
-+			"license": "MIT"
-+		},
- 		"node_modules/ms": {
- 			"version": "2.1.3",
- 			"resolved": "https://sfw.security.sentry.io/npm/ms/-/ms-2.1.3.tgz",
-@@ -5238,6 +5500,19 @@
- 				"node": ">=0.10.0"
+ 		"node_modules/google-auth-library": {
+ 			"version": "10.9.1",
+ 			"resolved": "https://sfw.security.sentry.io/npm/google-auth-library/-/google-auth-library-10.9.1.tgz",
+@@ -3979,6 +4569,15 @@
+ 				"url": "https://github.com/sponsors/ljharb"
  			}
  		},
-+		"node_modules/require-in-the-middle": {
-+			"version": "8.0.1",
-+			"resolved": "https://sfw.security.sentry.io/npm/require-in-the-middle/-/require-in-the-middle-8.0.1.tgz",
-+			"integrity": "sha512-QT7FVMXfWOYFbeRBF6nu+I6tr2Tf3u0q8RIEjNob/heKY/nh7drD/k7eeMFmSQgnTtCzLDcCu/XEnpW2wk4xCQ==",
++		"node_modules/has-flag": {
++			"version": "4.0.0",
++			"resolved": "https://sfw.security.sentry.io/npm/has-flag/-/has-flag-4.0.0.tgz",
++			"integrity": "sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==",
++			"license": "MIT",
++			"engines": {
++				"node": ">=8"
++			}
++		},
+ 		"node_modules/has-symbols": {
+ 			"version": "1.1.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/has-symbols/-/has-symbols-1.1.0.tgz",
+@@ -4196,7 +4795,6 @@
+ 			"version": "3.1.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/jsesc/-/jsesc-3.1.0.tgz",
+ 			"integrity": "sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA==",
+-			"dev": true,
+ 			"license": "MIT",
+ 			"bin": {
+ 				"jsesc": "bin/jsesc"
+@@ -4247,9 +4845,7 @@
+ 			"version": "2.2.3",
+ 			"resolved": "https://sfw.security.sentry.io/npm/json5/-/json5-2.2.3.tgz",
+ 			"integrity": "sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==",
+-			"dev": true,
+ 			"license": "MIT",
+-			"peer": true,
+ 			"bin": {
+ 				"json5": "lib/cli.js"
+ 			},
+@@ -4577,9 +5173,7 @@
+ 			"version": "11.5.2",
+ 			"resolved": "https://sfw.security.sentry.io/npm/lru-cache/-/lru-cache-11.5.2.tgz",
+ 			"integrity": "sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==",
+-			"dev": true,
+ 			"license": "BlueOak-1.0.0",
+-			"peer": true,
+ 			"engines": {
+ 				"node": "20 || >=22"
+ 			}
+@@ -4703,6 +5297,30 @@
+ 				"node": ">= 0.6"
+ 			}
+ 		},
++		"node_modules/minimatch": {
++			"version": "10.2.6",
++			"resolved": "https://sfw.security.sentry.io/npm/minimatch/-/minimatch-10.2.6.tgz",
++			"integrity": "sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==",
++			"license": "BlueOak-1.0.0",
++			"dependencies": {
++				"brace-expansion": "^5.0.8"
++			},
++			"engines": {
++				"node": "18 || 20 || >=22"
++			},
++			"funding": {
++				"url": "https://github.com/sponsors/isaacs"
++			}
++		},
++		"node_modules/minipass": {
++			"version": "7.1.3",
++			"resolved": "https://sfw.security.sentry.io/npm/minipass/-/minipass-7.1.3.tgz",
++			"integrity": "sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==",
++			"license": "BlueOak-1.0.0",
++			"engines": {
++				"node": ">=16 || 14 >=14.17"
++			}
++		},
+ 		"node_modules/minisearch": {
+ 			"version": "7.2.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/minisearch/-/minisearch-7.2.0.tgz",
+@@ -4810,9 +5428,7 @@
+ 			"version": "2.0.56",
+ 			"resolved": "https://sfw.security.sentry.io/npm/node-releases/-/node-releases-2.0.56.tgz",
+ 			"integrity": "sha512-x0InOIyzgdk+eyaWaRJFH5snEtiImgBgblZ2CyPrLmqqcuMQkEvcDPHbzqbD8eDsSeJbVOjn+crzyzHaM4D+/A==",
+-			"dev": true,
+ 			"license": "MIT",
+-			"peer": true,
+ 			"engines": {
+ 				"node": ">=18"
+ 			}
+@@ -5021,6 +5637,22 @@
+ 				"node": ">=8"
+ 			}
+ 		},
++		"node_modules/path-scurry": {
++			"version": "2.0.2",
++			"resolved": "https://sfw.security.sentry.io/npm/path-scurry/-/path-scurry-2.0.2.tgz",
++			"integrity": "sha512-3O/iVVsJAPsOnpwWIeD+d6z/7PmqApyQePUtCndjatj/9I5LylHvt5qluFaBT3I5h3r1ejfR056c+FCv+NnNXg==",
++			"license": "BlueOak-1.0.0",
++			"dependencies": {
++				"lru-cache": "^11.0.0",
++				"minipass": "^7.1.2"
++			},
++			"engines": {
++				"node": "18 || 20 || >=22"
++			},
++			"funding": {
++				"url": "https://github.com/sponsors/isaacs"
++			}
++		},
+ 		"node_modules/path-to-regexp": {
+ 			"version": "8.4.2",
+ 			"resolved": "https://sfw.security.sentry.io/npm/path-to-regexp/-/path-to-regexp-8.4.2.tgz",
+@@ -5037,7 +5669,6 @@
+ 			"version": "1.1.1",
+ 			"resolved": "https://sfw.security.sentry.io/npm/picocolors/-/picocolors-1.1.1.tgz",
+ 			"integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
+-			"dev": true,
+ 			"license": "ISC"
+ 		},
+ 		"node_modules/picomatch": {
+@@ -5327,6 +5958,15 @@
+ 			"license": "MIT",
+ 			"peer": true
+ 		},
++		"node_modules/semver": {
++			"version": "6.3.1",
++			"resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-6.3.1.tgz",
++			"integrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
++			"license": "ISC",
++			"bin": {
++				"semver": "bin/semver.js"
++			}
++		},
+ 		"node_modules/send": {
+ 			"version": "1.2.1",
+ 			"resolved": "https://sfw.security.sentry.io/npm/send/-/send-1.2.1.tgz",
+@@ -5355,6 +5995,18 @@
+ 				"url": "https://opencollective.com/express"
+ 			}
+ 		},
++		"node_modules/sentry": {
++			"version": "0.44.1",
++			"resolved": "https://sfw.security.sentry.io/npm/sentry/-/sentry-0.44.1.tgz",
++			"integrity": "sha512-LK+RJ2PFsJKM+P0D/zYC+M5gFB1ytfVONU9DVUqJu67YFlwnj3wGJkUzBhCS8R4iUqRdRTAYbFbRKTAe03rW/Q==",
++			"license": "FSL-1.1-Apache-2.0",
++			"bin": {
++				"sentry": "dist/bin.cjs"
++			},
++			"engines": {
++				"node": ">=20.0"
++			}
++		},
+ 		"node_modules/serve-static": {
+ 			"version": "2.2.1",
+ 			"resolved": "https://sfw.security.sentry.io/npm/serve-static/-/serve-static-2.2.1.tgz",
+@@ -5546,6 +6198,21 @@
+ 				"url": "https://github.com/chalk/strip-ansi?sponsor=1"
+ 			}
+ 		},
++		"node_modules/supports-color": {
++			"version": "8.1.1",
++			"resolved": "https://sfw.security.sentry.io/npm/supports-color/-/supports-color-8.1.1.tgz",
++			"integrity": "sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==",
 +			"license": "MIT",
 +			"dependencies": {
-+				"debug": "^4.3.5",
-+				"module-details-from-path": "^1.0.3"
++				"has-flag": "^4.0.0"
 +			},
 +			"engines": {
-+				"node": ">=9.3.0 || >=8.10.0 <9.0.0"
++				"node": ">=10"
++			},
++			"funding": {
++				"url": "https://github.com/chalk/supports-color?sponsor=1"
 +			}
 +		},
- 		"node_modules/retry": {
- 			"version": "0.13.1",
- 			"resolved": "https://sfw.security.sentry.io/npm/retry/-/retry-0.13.1.tgz",
+ 		"node_modules/tinyglobby": {
+ 			"version": "0.2.17",
+ 			"resolved": "https://sfw.security.sentry.io/npm/tinyglobby/-/tinyglobby-0.2.17.tgz",
+@@ -5695,7 +6362,6 @@
+ 			"version": "1.3.3",
+ 			"resolved": "https://sfw.security.sentry.io/npm/update-browserslist-db/-/update-browserslist-db-1.3.3.tgz",
+ 			"integrity": "sha512-pJ2sYawQS0R/WI928Gj5GlPhTGzbMelq0+4INtSYNDV9ErKJcX6xjGWkoG/VnB3dpUm00zALaqkrUD77pO5TDQ==",
+-			"dev": true,
+ 			"funding": [
+ 				{
+ 					"type": "opencollective",
+@@ -5711,7 +6377,6 @@
+ 				}
+ 			],
+ 			"license": "MIT",
+-			"peer": true,
+ 			"dependencies": {
+ 				"escalade": "^3.2.0",
+ 				"picocolors": "^1.1.1"
+@@ -5938,6 +6603,12 @@
+ 				"node": ">=10"
+ 			}
+ 		},
++		"node_modules/yallist": {
++			"version": "3.1.1",
++			"resolved": "https://sfw.security.sentry.io/npm/yallist/-/yallist-3.1.1.tgz",
++			"integrity": "sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==",
++			"license": "ISC"
++		},
+ 		"node_modules/yaml": {
+ 			"version": "2.9.0",
+ 			"resolved": "https://sfw.security.sentry.io/npm/yaml/-/yaml-2.9.0.tgz",
 diff --git a/apps/pr-reviewer/package.json b/apps/pr-reviewer/package.json
-index 42446d3..3dcd8b6 100644
+index 42446d3..7631bb7 100644
 --- a/apps/pr-reviewer/package.json
 +++ b/apps/pr-reviewer/package.json
 @@ -12,7 +12,9 @@
  		"typecheck": "tsc --noEmit"
  	},
  	"dependencies": {
-+		"@flue/opentelemetry": "^2.0.3",
++		"@flue/opentelemetry": "2.0.3",
  		"@flue/runtime": "2.0.3",
-+		"@sentry/node": "^10.75.0",
++		"@sentry/node": "11.0.0-rc.0",
  		"valibot": "1.4.2"
  	},
  	"devDependencies": {
 diff --git a/apps/pr-reviewer/src/agents/review.ts b/apps/pr-reviewer/src/agents/review.ts
-index 843ba50..475bb13 100644
+index 843ba50..a90d7d6 100644
 --- a/apps/pr-reviewer/src/agents/review.ts
 +++ b/apps/pr-reviewer/src/agents/review.ts
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,7 @@
  'use agent';
  
-+// Sentry + OTel instrumentation must be registered from here.
 +import '../sentry.ts';
 +
  import { readFile, writeFile } from 'node:fs/promises';
@@ -409,10 +1042,10 @@ index 843ba50..475bb13 100644
  import * as v from 'valibot';
 diff --git a/apps/pr-reviewer/src/sentry.ts b/apps/pr-reviewer/src/sentry.ts
 new file mode 100644
-index 0000000..5192fcf
+index 0000000..0722eef
 --- /dev/null
 +++ b/apps/pr-reviewer/src/sentry.ts
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,67 @@
 +// The whole Sentry setup for this app — the agent code makes no Sentry calls
 +// beyond the import in review.ts.
 +
@@ -420,9 +1053,9 @@ index 0000000..5192fcf
 +import { instrument } from '@flue/runtime';
 +import * as Sentry from '@sentry/node';
 +
-+// Sentry ships integrations that patch AI provider SDKs directly. Flue's
-+// instrumentation already emits one `chat` span per model turn, so those
-+// integrations would double-count every model call.
++// pi-ai depends on the `openai` package, so Sentry's OpenAI integration (and
++// the other AI provider integrations, which patch their SDKs directly) would
++// double count every model call Flue's instrumentation already traces.
 +const AI_PROVIDER_INTEGRATIONS = new Set([
 +	'Anthropic_AI',
 +	'OpenAI',
@@ -433,7 +1066,7 @@ index 0000000..5192fcf
 +	'WorkersAI',
 +]);
 +
-+function remapToolPayload(span: Parameters<Parameters<typeof Sentry.withStreamedSpan>[0]>[0]) {
++function remapToolPayload(span: Parameters<NonNullable<Sentry.NodeOptions['beforeSendSpan']>>[0]) {
 +	const attributes = span.attributes;
 +	if (attributes) {
 +		for (const kind of ['arguments', 'result'] as const) {
@@ -454,15 +1087,9 @@ index 0000000..5192fcf
 +	environment: process.env.GITHUB_ACTIONS ? 'github-actions' : 'local',
 +	release: process.env.GITHUB_SHA,
 +	tracesSampleRate: 1,
-+	// Only streamed spans reach the ingest pipeline that derives `gen_ai.*` ops
-+	// from span attributes.
-+	traceLifecycle: 'stream',
-+	enableLogs: true,
-+	sendDefaultPii: true,
++	enableOpenTelemetrySetup: true,
 +	integrations: (defaults) => defaults.filter((integration) => !AI_PROVIDER_INTEGRATIONS.has(integration.name)),
-+	// withStreamedSpan is required — a bare callback silently downgrades
-+	// traceLifecycle to 'static'.
-+	beforeSendSpan: Sentry.withStreamedSpan(remapToolPayload),
++	beforeSendSpan: remapToolPayload,
 +});
 +
 +Sentry.setUser({ id: process.env.GITHUB_ACTOR ?? 'local' });
@@ -471,10 +1098,9 @@ index 0000000..5192fcf
 +	'github.pr': process.env.PR_NUMBER ?? 'none',
 +});
 +
-+// Registered before the OpenTelemetry adapter so it is disposed *after* it.
-+// The runtime disposes owners in reverse registration order, and the
-+// adapter's dispose ends every still-open span synchronously — the flush
-+// here must run after that, or open spans strand in the client's buffer.
++// Registered before the OpenTelemetry adapter so it disposes *after* it: the
++// runtime disposes in reverse order, and the adapter's dispose ends every
++// still-open span synchronously, so the flush must run after that.
 +instrument({
 +	key: Symbol.for('workshop.sentry.flush'),
 +	observe() {},
@@ -484,6 +1110,6 @@ index 0000000..5192fcf
 +	},
 +});
 +
-+// Sentry.init registered the global OTel tracer provider, so Flue's spans
-+// flow to Sentry without further exporter wiring.
++// enableOpenTelemetrySetup makes Sentry the global tracer provider, so the
++// adapter's spans (registered here) flow into Sentry without further wiring.
 +instrument(createOpenTelemetryInstrumentation());

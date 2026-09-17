@@ -30,6 +30,8 @@ request, and the demo user from `lib/demo-user.ts` set as the Sentry user.
 - Session replay in the browser, so a failed chat turn links to what the
 user saw.
 - Full trace sampling for the workshop.
+Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
+what these points need; no edge runtime config, no extra error boundaries.
 When done, start the dev server, send one chat message that searches the
 shoes collection, then query Sentry for the resulting trace and show me the
 gen_ai spans with their token counts.
@@ -88,6 +90,8 @@ user id set as the Sentry user.
 - Database spans for the Postgres queries under `../storefront/lib/db`.
 - Logs sent to Sentry for the bot's own log lines.
 - Full trace sampling for the workshop.
+Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
+what these points need.
 The process starts with `npm run dev`. When done, start it, wait for the
 "connected over Socket Mode" line, and tell me how to confirm the first
 trace arrived.
@@ -124,6 +128,8 @@ subagents, and the tools show as nested gen_ai spans with token counts.
 - The repository and pull request number as tags on every span.
 - A flush before the process exits, so the last spans are not lost.
 - Full trace sampling.
+Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
+what these points need.
 Add the `SENTRY_DSN` secret to `.github/workflows/review.yml`. Then run
 `npm run demo` against `fixtures/sample.diff` and show me the resulting
 trace.

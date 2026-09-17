@@ -30,6 +30,8 @@ Start your coding agent in `apps/slack-agent` and send:
 > - Database spans for the Postgres queries under `../storefront/lib/db`.
 > - Logs sent to Sentry for the bot's own log lines.
 > - Full trace sampling for the workshop.
+> Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
+> what these points need.
 > The process starts with `npm run dev`. When done, start it, wait for the
 > "connected over Socket Mode" line, and tell me how to confirm the first
 > trace arrived.

@@ -31,6 +31,8 @@ Start your coding agent in `apps/pr-reviewer` and send:
 > - The repository and pull request number as tags on every span.
 > - A flush before the process exits, so the last spans are not lost.
 > - Full trace sampling.
+> Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
+> what these points need.
 > Add the `SENTRY_DSN` secret to `.github/workflows/review.yml`. Then run
 > `npm run demo` against `fixtures/sample.diff` and show me the resulting
 > trace.

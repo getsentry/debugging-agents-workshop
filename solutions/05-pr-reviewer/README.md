@@ -1,22 +1,28 @@
 # Solution: instrument the pr-reviewer
 
-`instrumentation.patch` adds Sentry (`@sentry/node@^10`,
+`instrumentation.patch` adds Sentry (`@sentry/node@11.0.0-rc.0`,
 `@flue/opentelemetry@2.0.3`) to `apps/pr-reviewer`, wired through Flue's
 OpenTelemetry adapter.
 
 ## Files it adds or changes
 
 - `src/sentry.ts` — Sentry init: DSN, environment (`github-actions` in CI,
-  `local` otherwise), release from `GITHUB_SHA`, streamed tracing, logs, PII,
-  AI-provider integrations filtered out (Flue already emits one chat span
-  per model turn), `beforeSendSpan` remapping `flue.tool.call.*` to
+  `local` otherwise), release from `GITHUB_SHA`, tracing,
+  `enableOpenTelemetrySetup: true` (v11 no longer takes over OpenTelemetry by
+  default, so this makes Sentry the global tracer provider the adapter's
+  spans flow into), AI-provider integrations filtered out (pi-ai depends on
+  the `openai` package, so those integrations would double count every model
+  call Flue already traces), `beforeSendSpan` remapping `flue.tool.call.*` to
   `gen_ai.tool.call.*`, and a flush-on-dispose instrument registered before
-  the OpenTelemetry adapter so the flush runs after it ends its spans.
+  the OpenTelemetry adapter so the flush runs after it ends its spans. v11
+  records AI inputs, outputs, and the user by default.
 - `src/agents/review.ts` — imports `../sentry.ts` first.
 - `.github/workflows/review.yml` — adds `SENTRY_DSN` to the run step's env.
 - `.env.example` — adds `SENTRY_DSN`.
 - `README.md` — adds a Sentry section.
 - `package.json` / `package-lock.json` — adds the two dependencies.
+
+SDK: @sentry/node 11.0.0-rc.0
 
 ## Env vars it needs
 
