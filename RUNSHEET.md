@@ -102,8 +102,11 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 - **Code.** `src/sentry.ts`: `enableOpenTelemetrySetup: true`,
   `environment` and `release` from the Actions environment, the AI provider
   integrations filtered out because pi-ai depends on `openai`, and
-  `beforeSendSpan` renaming `flue.tool.call.*` to `gen_ai.tool.call.*`.
-  `.github/workflows/review.yml`: the two secrets. The flush before exit.
+  `beforeSendSpan` renaming `flue.tool.call.*` to `gen_ai.tool.call.*`,
+  `resolveRootContext` keeping both subagents in the lead's trace, and the
+  scope reset that stops the SDK transport's tracing suppression from
+  leaking into Flue's later spans. `.github/workflows/review.yml`: the two
+  secrets. The flush before exit.
   Then `regressions/per-file-fanout.patch`.
 - **Sentry UI.** The trace waterfall. Explore > Spans, input tokens per run
   by release, and the pull request comment next to it, which looks the same

@@ -44,6 +44,10 @@ Watch for:
   calls by hand. The right answer is a span exporter, not a wrapper.
 - Whether it flushes. A CI run without a flush sends nothing and reports
   success.
+- Whether both subagents land in the lead's trace. Flue starts each task
+  outside the lead's span context, so a plain exporter setup opens one trace
+  per subagent. The finished result hands the adapter the lead span as the
+  root for every child session.
 
 ## If your agent is still running
 
