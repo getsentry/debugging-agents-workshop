@@ -1,0 +1,24 @@
+{
+	"name": "pr-reviewer",
+	"private": true,
+	"type": "module",
+	"engines": {
+		"node": ">=22.19.0"
+	},
+	"scripts": {
+		"demo": "flue run src/agents/review.ts --message 'Review the diff at fixtures/sample.diff and post your review.'",
+		"demo:fix": "flue run src/agents/review.ts --message 'Review the diff at fixtures/fix.diff and post your review.'",
+		"lint": "oxlint",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@flue/runtime": "2.0.3",
+		"valibot": "1.4.2"
+	},
+	"devDependencies": {
+		"@flue/cli": "2.0.3",
+		"@types/node": "22.20.1",
+		"oxlint": "1.78.0",
+		"typescript": "7.0.2"
+	}
+}

@@ -1,0 +1,34 @@
+# Copy this file to .github/workflows/review.yml in the repository the agent
+# should review. It assumes this project sits at the repository root.
+name: PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Export the PR diff
+        run: git diff origin/${{ github.base_ref }}...HEAD > fixtures/latest.diff
+      - name: Run the review agent
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          POST_TO_GITHUB: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_DESCRIPTION: ${{ github.event.pull_request.body }}
+        run: npx flue run src/agents/review.ts --message 'Review the diff at fixtures/latest.diff and post your review.'
