@@ -76,3 +76,11 @@ times. This is the regression from the talk, now in your own project.
   are.
 - A cache regression shows up as a change in one attribute per release. It
   is invisible without agent tracing.
+
+## Reference: the same bot on eve
+
+The reference repo has this assistant on Vercel's eve framework, in
+`slack-agent-eve` (Sentry SDK inside eve's OpenTelemetry pipeline) and
+`slack-agent-eve-otel` (OTLP export to Sentry). eve is webhook-based and
+needs a Vercel deploy, so the lab uses Bolt. Read those two when your own
+agent framework owns the trace pipeline.

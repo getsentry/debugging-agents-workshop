@@ -59,3 +59,10 @@ with Claude Code and the Sentry plugin, so you can compare your result.
 
 The fully instrumented versions of these apps live at
 <https://github.com/getsentry/sentry-agent-tracing-examples>.
+
+The same Slack assistant also exists on Vercel's eve agent framework, in
+`slack-agent-eve` and `slack-agent-eve-otel` in that repo. eve receives
+Slack events over a webhook and needs a Vercel deploy, so it is not used
+in the labs. It shows what changes when a framework owns the spans: one
+version uses the Sentry SDK inside eve's OpenTelemetry pipeline, the other
+exports OTLP straight to Sentry.
