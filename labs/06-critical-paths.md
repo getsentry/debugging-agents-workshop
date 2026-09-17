@@ -39,9 +39,13 @@ CLI. Ask:
 > `gen_ai.request.model`, and a table of the top 10 conversations by input
 > tokens with their user. Then open it.
 
-Check the queries it writes. `scripts/dashboards/` in this repo has the
-presenter's versions of these widgets, plus the cache hit rate per release
-widget from Lab 5.
+Check the queries it writes. Compare them with the presenter's version:
+
+    node scripts/dashboards/agent-critical-paths.mjs <org> <project-id>
+
+It prints the dashboard JSON with five widgets: cache hit rate by release,
+input tokens by release, the most expensive conversations, tool calls with
+failures, and model latency. Add `--push` to create it through the CLI.
 
 ## Step 4. The presenter shows the other two
 
