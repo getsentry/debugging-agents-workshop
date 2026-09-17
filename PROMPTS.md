@@ -90,7 +90,6 @@ message shows as one trace with the model calls and tool calls inside it.
 - The Slack thread timestamp set as the conversation id, and the Slack
 user id set as the Sentry user.
 - Database spans for the Postgres queries under `../storefront/lib/db`.
-- Logs sent to Sentry for the bot's own log lines.
 - Full trace sampling for the workshop.
 Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
 what these points need.

@@ -13,7 +13,7 @@ What changes compared with the storefront:
 - The entry point is a long-running Node process, not a Next.js route.
 - The conversation id is the Slack thread timestamp.
 - The user is the Slack user who wrote the message.
-- There is no session replay. The trace and the logs are all you get.
+- There is no session replay. The trace is all you get.
 
 ## Step 1. Instrument by prompt
 
@@ -28,7 +28,6 @@ Start your coding agent in `apps/slack-agent` and send:
 > - The Slack thread timestamp set as the conversation id, and the Slack
 >   user id set as the Sentry user.
 > - Database spans for the Postgres queries under `../storefront/lib/db`.
-> - Logs sent to Sentry for the bot's own log lines.
 > - Full trace sampling for the workshop.
 > Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
 > what these points need.

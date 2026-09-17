@@ -17,7 +17,7 @@ diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
 index 0000000..0000000 100644
 --- a/apps/slack-agent/README.md
 +++ b/apps/slack-agent/README.md
-@@ -24,4 +24,13 @@
+@@ -24,4 +24,12 @@
  7. `npm run dev`
  8. DM the bot: "show me the shoes collection".
  
@@ -30,8 +30,7 @@ index 0000000..0000000 100644
 +and the thread timestamp as the conversation id, with the model call and its
 +tool calls nested inside as `gen_ai` spans, and Postgres queries from `lib/db`
 +as `db.query` spans. The Sentry user is the Slack user who sent the message.
-+Errors go to Sentry, and the console logging integration forwards the bot's
-+`console.log`/`console.error` lines as Sentry logs.
++Errors go to Sentry as issues.
 diff --git a/apps/slack-agent/package-lock.json b/apps/slack-agent/package-lock.json
 index 0000000..0000000 100644
 --- a/apps/slack-agent/package-lock.json
@@ -1128,12 +1127,10 @@ index 0000000..0000000
 new file mode 100644
 --- /dev/null
 +++ b/apps/slack-agent/src/instrument.ts
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,6 @@
 +import * as Sentry from "@sentry/node";
 +
 +Sentry.init({
 +  dsn: process.env.SENTRY_DSN,
 +  tracesSampleRate: 1,
-+  // Forwards console.log/console.error lines as Sentry logs.
-+  integrations: [Sentry.consoleLoggingIntegration()],
 +});
