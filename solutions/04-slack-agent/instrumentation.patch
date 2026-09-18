@@ -14,10 +14,10 @@ index 9e69a32..6a2175c 100644
 +# Optional. Read automatically by the SDK; not passed to Sentry.init.
 +SENTRY_RELEASE=
 diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
-index f2182b5..0499ba2 100644
+index c4b87b1..81d762c 100644
 --- a/apps/slack-agent/README.md
 +++ b/apps/slack-agent/README.md
-@@ -37,4 +37,12 @@ app created from an older manifest must have its manifest replaced on the App
+@@ -38,4 +38,12 @@ app created from an older manifest must have its manifest replaced on the App
  Manifest page at api.slack.com, then be reinstalled. Slack does not let an
  app go back to the older assistant experience.
  
@@ -1013,7 +1013,7 @@ index d5c89ef..751dc93 100644
      "ai": "7.0.64",
      "dotenv": "17.4.2",
 diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
-index b884566..571e54f 100644
+index 29d2937..0865e73 100644
 --- a/apps/slack-agent/src/app.ts
 +++ b/apps/slack-agent/src/app.ts
 @@ -1,3 +1,5 @@
@@ -1022,7 +1022,7 @@ index b884566..571e54f 100644
  import { App } from "@slack/bolt";
  import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
  import type { BlockFeedbackButtonsAction } from "@slack/bolt";
-@@ -85,64 +87,81 @@ async function respond({
+@@ -91,80 +93,97 @@ async function respond({
    const conversationId = event.thread_ts ?? event.ts;
    let stream: ReturnType<SayStreamFn> | undefined;
  
@@ -1062,10 +1062,19 @@ index b884566..571e54f 100644
 -    } as const;
 +        stream = sayStream({ task_display_mode: "timeline" });
  
+-    let reply = "";
+-    const found = new Map<string, ProductCard>();
++        const taskStatus = {
++          "tool-call": "in_progress",
++          "tool-result": "complete",
++          "tool-error": "error",
++        } as const;
+ 
 -    for await (const part of streamAnswer({ messages, conversationId })
 -      .fullStream) {
 -      switch (part.type) {
 -        case "text-delta":
+-          reply += part.text;
 -          await stream.append({ markdown_text: part.text });
 -          break;
 -        case "tool-call":
@@ -1081,38 +1090,20 @@ index b884566..571e54f 100644
 -              },
 -            ],
 -          });
--          break;
--        case "error":
--          throw part.error;
--        default:
--          break;
--      }
--    }
-+        const taskStatus = {
-+          "tool-call": "in_progress",
-+          "tool-result": "complete",
-+          "tool-error": "error",
-+        } as const;
- 
--    await stream.stop({ blocks: FEEDBACK_BLOCK });
--  } catch (error) {
--    if (stream) {
--      await stream.stop({ markdown_text: ERROR_REPLY });
--    } else {
--      await say({ text: ERROR_REPLY, thread_ts: conversationId });
--    }
--    throw error;
--  } finally {
--    // Slack's agent messaging experience keeps the status until the app
--    // clears it; the older assistant experience cleared it on the reply.
--    await setStatus("").catch((error) =>
--      console.warn("setStatus failed", error),
--    );
--  }
+-          if (part.type === "tool-result" && !part.dynamic) {
+-            if (part.toolName === "searchProducts") {
+-              for (const p of part.output.products) found.set(p.handle, p);
+-            } else if (part.toolName === "getProduct" && part.output.product) {
+-              found.set(part.output.product.handle, part.output.product);
+-            }
++        let reply = "";
++        const found = new Map<string, ProductCard>();
++
 +        for await (const part of streamAnswer({ messages, conversationId })
 +          .fullStream) {
 +          switch (part.type) {
 +            case "text-delta":
++              reply += part.text;
 +              await stream.append({ markdown_text: part.text });
 +              break;
 +            case "tool-call":
@@ -1128,15 +1119,54 @@ index b884566..571e54f 100644
 +                  },
 +                ],
 +              });
++              if (part.type === "tool-result" && !part.dynamic) {
++                if (part.toolName === "searchProducts") {
++                  for (const p of part.output.products) found.set(p.handle, p);
++                } else if (part.toolName === "getProduct" && part.output.product) {
++                  found.set(part.output.product.handle, part.output.product);
++                }
++              }
 +              break;
 +            case "error":
 +              throw part.error;
 +            default:
 +              break;
-+          }
+           }
+-          break;
+-        case "error":
+-          throw part.error;
+-        default:
+-          break;
+-      }
+-    }
 +        }
-+
-+        await stream.stop({ blocks: FEEDBACK_BLOCK });
+ 
+-    // A search returns up to six products and the model often picks a few
+-    // (for example "under $60"), so show only the ones the reply names.
+-    const products = [...found.values()].filter((p) => reply.includes(p.title));
+-    await stream.stop({
+-      blocks: [...productCarousel(products), ...FEEDBACK_BLOCK],
+-    });
+-  } catch (error) {
+-    if (stream) {
+-      await stream.stop({ markdown_text: ERROR_REPLY });
+-    } else {
+-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
+-    }
+-    throw error;
+-  } finally {
+-    // Slack's agent messaging experience keeps the status until the app
+-    // clears it; the older assistant experience cleared it on the reply.
+-    await setStatus("").catch((error) =>
+-      console.warn("setStatus failed", error),
+-    );
+-  }
++        // A search returns up to six products and the model often picks a few
++        // (for example "under $60"), so show only the ones the reply names.
++        const products = [...found.values()].filter((p) => reply.includes(p.title));
++        await stream.stop({
++          blocks: [...productCarousel(products), ...FEEDBACK_BLOCK],
++        });
 +      } catch (error) {
 +        Sentry.captureException(error);
 +        if (stream) {
