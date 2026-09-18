@@ -78,7 +78,8 @@ failures, and model latency. Add `--push` to create it through the CLI.
 
 ## Checkpoint
 
-Trigger the refund failure three times fast. The alert email arrives. Paste
+Trigger the refund failure four times in ten minutes. The alert fires on
+more than 3 failures. The alert email arrives a few minutes later. Paste
 the alert link in the workshop channel.
 
 ## What you learned
