@@ -10,11 +10,11 @@ index 0000000..0000000 100644
 +
  # GITHUB_REPOSITORY, GITHUB_TOKEN, PR_NUMBER, and PR_DESCRIPTION come from
  # GitHub Actions (see .github/workflows/review.yml) and are not set locally.
-diff --git a/apps/pr-reviewer/.github/workflows/review.yml b/apps/pr-reviewer/.github/workflows/review.yml
+diff --git a/.github/workflows/review.yml b/.github/workflows/review.yml
 index 0000000..0000000 100644
---- a/apps/pr-reviewer/.github/workflows/review.yml
-+++ b/apps/pr-reviewer/.github/workflows/review.yml
-@@ -31,4 +31,5 @@ jobs:
+--- a/.github/workflows/review.yml
++++ b/.github/workflows/review.yml
+@@ -43,4 +43,5 @@ jobs:
            GITHUB_REPOSITORY: ${{ github.repository }}
            PR_NUMBER: ${{ github.event.pull_request.number }}
            PR_DESCRIPTION: ${{ github.event.pull_request.body }}

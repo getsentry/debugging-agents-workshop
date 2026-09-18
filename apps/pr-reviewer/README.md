@@ -18,16 +18,28 @@ OPENROUTER_API_KEY=... npm run demo
 `fixtures/fix.diff`. Without `POST_TO_GITHUB=true` set, the review is written
 to `review.md` instead of posted to a pull request.
 
-## Install it in a repository
+## Run it on pull requests
 
-1. Copy this app's contents to the root of the target repository.
-2. Add the OpenRouter API key as a repository secret:
+GitHub only runs workflows from the repository root. The workflow for this
+app is `.github/workflows/review.yml` at the root of this repository. It runs
+only for pull requests that change `apps/pr-reviewer/`, and it runs every step
+inside `apps/pr-reviewer`.
+
+1. Add the OpenRouter API key as a repository secret:
    ```
    gh secret set OPENROUTER_API_KEY
    ```
-3. Open a pull request. `.github/workflows/review.yml` runs on `opened` and
-   `synchronize`, diffs the PR against its base branch, and posts the review
-   as a PR comment.
+2. Open a pull request that changes a file in `apps/pr-reviewer/`. The
+   workflow runs on `opened` and `synchronize`, diffs the PR against its base
+   branch, and posts the review as a PR comment.
+
+In a fork, enable Actions on the fork first. A pull request from a fork to
+this repository does not get the secrets, so open the pull request inside
+your fork.
+
+To use the agent in another repository, copy this app to that repository's
+root, copy the workflow, and remove the `paths` filter and the
+`working-directory` default.
 
 ## Sentry
 

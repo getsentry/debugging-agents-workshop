@@ -17,7 +17,8 @@ OpenTelemetry adapter.
   the OpenTelemetry adapter so the flush runs after it ends its spans. v11
   records AI inputs, outputs, and the user by default.
 - `src/agents/review.ts` — imports `../sentry.ts` first.
-- `.github/workflows/review.yml` — adds `SENTRY_DSN` to the run step's env.
+- `.github/workflows/review.yml` (repository root) — adds `SENTRY_DSN` to the
+  run step's env.
 - `.env.example` — adds `SENTRY_DSN`.
 - `README.md` — adds a Sentry section.
 - `package.json` / `package-lock.json` — adds the two dependencies.
