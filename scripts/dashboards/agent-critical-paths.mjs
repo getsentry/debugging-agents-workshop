@@ -28,7 +28,8 @@ function widget(title, displayType, query, layout, extra = {}) {
     displayType,
     widgetType: "spans",
     interval: "5m",
-    limit: extra.limit ?? null,
+    // Sentry rejects a grouped chart without a limit; tables take none.
+    limit: extra.limit ?? (displayType !== "table" && query.columns?.length ? 5 : null),
     queries: [
       {
         name: "",
@@ -36,7 +37,7 @@ function widget(title, displayType, query, layout, extra = {}) {
         columns: query.columns ?? [],
         aggregates: query.aggregates,
         fieldAliases: query.aliases ?? [],
-        conditions: query.conditions,
+        conditions: `${query.conditions} project.id:${projectId}`,
         orderby: query.orderby ?? "",
       },
     ],
@@ -46,7 +47,9 @@ function widget(title, displayType, query, layout, extra = {}) {
 
 const dashboard = {
   title,
-  projects: [Number(projectId)],
+  // All projects (-1) plus a project.id filter in each widget. Binding the
+  // dashboard to the project returns 403 for a user who is not on its team.
+  projects: [-1],
   environment: [],
   period: "24h",
   filters: {},

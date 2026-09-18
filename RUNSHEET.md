@@ -127,17 +127,26 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 ## Lab 6. Alerts and dashboards per critical path (10 minutes, hands-on)
 
 - **Outcome.** Two alerts: `refundOrder` errors more than three times in
-  ten minutes, and one conversation above 50,000 input tokens. One
-  dashboard, "Storefront agent": tokens per day by model, and the top ten
-  conversations by input tokens with their user. Checkpoint: three fast
-  refund failures produce an email.
+  ten minutes, and model call failure rate above 10% over five minutes.
+  One dashboard, "Storefront agent": tokens per day by model, and the top
+  ten conversations by input tokens with their user. Checkpoint: three
+  fast refund failures produce an email. The presenter's copies, built
+  2026-09-18 in `debugging-agents-storefront`: workflow 5369309, detectors
+  10374603 (refund), 10374604 (failure rate), 10374605 (slow turns, p95 >
+  15 s), 10374606 (input tokens per hour, anomaly), dashboard 10117079 ("Storefront agent: critical paths", from `scripts/dashboards/agent-critical-paths.mjs`). Every detector was
+  accepted on the first POST once the payload copied an existing one.
 - **Prompt.** The two lab 6 prompts, alert first, dashboard second.
 - **Code.** The detector and workflow payloads the agent sends (Sentry's
   workflow engine, not the legacy alert-rules API) and the dashboard JSON
   the `sentry` CLI posts. Reference dashboards live in
   `sentry-agent-tracing-examples/dashboards/`.
 - **Sentry UI.** Alerts, the two new alerts and their queries. Dashboards,
-  the new dashboard.
+  the new dashboard. Say why there is no per-conversation alert: the
+  detector API refuses `groupBy` ("Group by Metric Alerts feature must be
+  enabled"), so the top-ten table is the answer.
+- **Pitfall.** Dashboard creation needs the `org:write` CLI scope;
+  `sentry auth login` alone gives 403 on `POST dashboards/`. Setup says
+  `sentry auth refresh --scope org:write`.
 - **Takeaway.** Start from the path that costs money, not the metric the
   tool offers. Alerts and dashboards are prompts too. The attribute names
   are in the trace.

@@ -30,7 +30,7 @@ your organization name.
 
 - Node 22 or newer: `node --version`
 - git
-- The `sentry` CLI: `curl https://cli.sentry.dev/install -fsS | bash`, then `sentry auth login`
+- The `sentry` CLI: `curl https://cli.sentry.dev/install -fsS | bash`, then `sentry auth login` and `sentry auth refresh --scope org:write` (lab 6 creates dashboards; the default token cannot)
 
 ## 4. Clone and run the setup script
 

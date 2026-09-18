@@ -157,10 +157,11 @@ Directory: `apps/storefront`. Full lab: [labs/06-critical-paths.md](labs/06-crit
 ### Step 2. One alert by prompt
 
 ```text
-In the storefront Sentry project, create an alert that fires when the
-`refundOrder` tool errors more than 3 times in 10 minutes, and another
-that fires when a single conversation uses more than 50,000 input tokens.
-Notify by email. Show me both alerts and the query each one uses.
+In the storefront Sentry project, create two alerts that email me. The
+first fires when the `refundOrder` tool errors more than 3 times in 10
+minutes. The second fires when more than 10% of the model calls fail over
+5 minutes. Look at an existing detector in the org for the payload shape
+first. Show me both alerts and the query each one uses.
 ```
 
 ### Step 3. One dashboard by CLI
