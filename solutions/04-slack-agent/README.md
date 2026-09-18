@@ -11,11 +11,12 @@
   AI inputs, outputs, and the user by default, so no opt-in flags are needed.
   Postgres spans come from the SDK's built-in pg integration.
 - `src/app.ts` — imports `instrument.ts` first, before `@slack/bolt` and the
-  agent. Wraps each handled message (app_mention and DM) in one
-  `Sentry.startSpan` (a root span, which is a segment in v11) tagged with the
-  Slack channel and the thread timestamp as the conversation id, factored
-  into a shared `handleMessage`. Scopes the Sentry user to the Slack user per
-  message and captures errors before the existing error reply.
+  agent. Wraps the body of the shared `respond()` (mention, DM, and assistant
+  thread) in one `Sentry.startSpan` (a root span, which is a segment in v11)
+  tagged with the Slack channel and the thread timestamp as the conversation
+  id. The streamed model call and its tool calls nest inside it. Scopes the
+  Sentry user to the Slack user per message and captures errors before the
+  existing error reply.
 - `src/agent.ts` — unchanged; v11 records AI telemetry by default.
 - `.env.example` — adds `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`
   (the last two are read automatically by the SDK).

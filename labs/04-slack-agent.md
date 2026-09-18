@@ -5,8 +5,9 @@ workshop with `apps/slack-agent/README.md`.
 
 `apps/slack-agent` is a Bolt app on Socket Mode. It answers direct messages
 and mentions with the storefront's four tools and the same Postgres database.
-Each Slack thread is one conversation. There is no browser, no HTTP request,
-and no Sentry.
+Each Slack thread is one conversation. The agent sets a thread status at
+once, streams its reply, and shows each tool call as a task card. There is no
+browser, no HTTP request, and no Sentry.
 
 What changes compared with the storefront:
 
