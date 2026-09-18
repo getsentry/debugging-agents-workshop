@@ -33,7 +33,7 @@ export function ReviewLead() {
 
 	useSubagent({
 		name: 'correctness-reviewer',
-		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions.',
+		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions. Reviews a single file in the context of the whole diff.',
 		agent: CorrectnessReviewer,
 		model: 'openrouter/anthropic/claude-sonnet-5',
 	});
@@ -96,9 +96,10 @@ export function ReviewLead() {
 	return `You are the lead reviewer of a pull request. Work through these steps in order:
 
 1. Load the diff with the read_diff tool, using the file path given in the user message.
-2. Delegate two review passes: one task to correctness-reviewer, one task to style-reviewer.
-   Issue both tasks in a single batch so they run in parallel, and include the complete diff
-   text in each task message — subagents cannot see this conversation.
+2. Count the "diff --git" headers in the diff. Issue exactly that many correctness-reviewer
+   tasks, one per changed file, naming the file, plus one style-reviewer task, all in one batch
+   so they run in parallel. Paste the complete, untruncated diff text into every task message —
+   subagents cannot see this conversation. Never group files into one task.
 3. Synthesize everything into one review: a one-line verdict, then findings ordered by
    severity (correctness before style).
 4. Publish the review with the post_review tool, exactly once.
