@@ -30,10 +30,11 @@ message, so follow-ups like "refund that order" work.
 - It streams the reply as it writes it.
 - It shows each tool call as a task in a timeline.
 - It adds feedback buttons under each reply.
-- In a DM, it shows an assistant panel with suggested prompts.
+- In a DM, the Messages tab shows four suggested prompts from the manifest.
 
-Note: an app created before this manifest must have its manifest updated on
-the App Manifest page at api.slack.com, then be reinstalled. This gives the
-app the assistant panel and the feedback buttons.
+Note: the manifest uses Slack's agent messaging experience (`agent_view`). An
+app created from an older manifest must have its manifest replaced on the App
+Manifest page at api.slack.com, then be reinstalled. Slack does not let an
+app go back to the older assistant experience.
 
 Sentry is added to this app in `labs/04-slack-agent.md`.

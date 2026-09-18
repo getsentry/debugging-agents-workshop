@@ -1,4 +1,4 @@
-import { App, Assistant } from "@slack/bolt";
+import { App } from "@slack/bolt";
 import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
 import type { BlockFeedbackButtonsAction } from "@slack/bolt";
 import type { AppMentionEvent, KnownBlock, MessageEvent } from "@slack/types";
@@ -208,41 +208,6 @@ app.action<BlockFeedbackButtonsAction>(
     }
   },
 );
-
-// Both this Assistant and the plain "message" handler above exist because
-// Slack routes DM threads through the Assistant middleware only when the
-// app's "Agents & AI Apps" feature is turned on; the "message" handler still
-// serves top-level DMs when that feature is off.
-const assistant = new Assistant({
-  threadStarted: async ({ say, setSuggestedPrompts }) => {
-    await say("Hi! Ask me about products, orders, or refunds.");
-    await setSuggestedPrompts({
-      title: "Try one of these",
-      prompts: [
-        { title: "Where is my order?", message: "Where is my latest order?" },
-        { title: "Find a hoodie", message: "Show me hoodies under $60" },
-        {
-          title: "Loyalty points",
-          message: "How many loyalty points do I have?",
-        },
-        {
-          title: "Refund an order",
-          message: "Can I get a refund for order 1029?",
-        },
-      ],
-    });
-  },
-  userMessage: async ({ client, event, say, sayStream, setStatus, setTitle }) => {
-    if (event.subtype !== undefined || event.bot_id) return;
-    if (!event.text) return;
-
-    const text = stripMention(event.text);
-    await setTitle(text).catch((error) => console.warn("setTitle failed", error));
-    await respond({ client, event, text, sayStream, setStatus, say });
-  },
-});
-
-app.assistant(assistant);
 
 // Mentions arrive as "<@U0123> show me the shoes collection" - strip the
 // leading mention so the model sees a plain question.

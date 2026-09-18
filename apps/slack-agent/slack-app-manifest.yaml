@@ -8,9 +8,17 @@ features:
     home_tab_enabled: false
     messages_tab_enabled: true
     messages_tab_read_only_enabled: false
-  assistant_view:
-    assistant_description: "Answers questions about Acme Store products, orders, and refunds."
-    suggested_prompts: []
+  agent_view:
+    agent_description: "Answers questions about Acme Store products, orders, and refunds."
+    suggested_prompts:
+      - title: "Where is my order?"
+        message: "Where is my latest order?"
+      - title: "Find a hoodie"
+        message: "Show me hoodies under $60"
+      - title: "Loyalty points"
+        message: "How many loyalty points do I have?"
+      - title: "Refund an order"
+        message: "Can I get a refund for order 1029?"
 oauth_config:
   scopes:
     bot:
