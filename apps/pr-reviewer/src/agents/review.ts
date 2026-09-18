@@ -1,5 +1,7 @@
 'use agent';
 
+import '../sentry.ts';
+
 import { readFile, writeFile } from 'node:fs/promises';
 import { useModel, useSubagent, useTool } from '@flue/runtime';
 import * as v from 'valibot';

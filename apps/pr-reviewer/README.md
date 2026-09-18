@@ -43,5 +43,10 @@ root, copy the workflow, and remove the `paths` filter and the
 
 ## Sentry
 
-This app has no Sentry code. Sentry instrumentation is added in
-`labs/05-pr-reviewer.md`.
+Set `SENTRY_DSN` (locally in `.env`, in CI as the `SENTRY_DSN` repository
+secret) to send traces and logs to Sentry. One run produces a trace with a
+root span for the lead agent, a chat span per lead model turn, a tool span
+per `read_diff`/`post_review` call, and two subagent spans (one for
+`correctness-reviewer`, one for `style-reviewer`) with their own chat and
+tool spans nested underneath. `environment` is `github-actions` in CI and
+`local` otherwise; `release` is the workflow's `GITHUB_SHA`.

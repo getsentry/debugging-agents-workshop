@@ -42,4 +42,5 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_DESCRIPTION: ${{ github.event.pull_request.body }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: npx flue run src/agents/review.ts --message 'Review the diff at fixtures/latest.diff and post your review.'
