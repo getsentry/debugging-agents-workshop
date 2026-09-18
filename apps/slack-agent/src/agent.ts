@@ -1,5 +1,5 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { generateText, isStepCount } from "ai";
+import { isStepCount, streamText } from "ai";
 import type { ModelMessage } from "ai";
 import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
 import { resolveModel } from "lib/ai/models";
@@ -21,18 +21,28 @@ const assistantInstructions =
   "it with the order id. If refundOrder errors, apologize briefly and say " +
   "the team has been notified; never retry it. Tool results do not render " +
   "as cards here, so summarize them yourself: name each product and its " +
-  "price, or each order's id, status, and total. Prices are in USD. Format " +
-  "for Slack, not markdown - use *asterisks* for bold and never headings. " +
+  "price, or each order's id, status, and total. Prices are in USD. " +
+  "Format with standard markdown: **bold** for emphasis and short bullet " +
+  "lists, never headings or tables. " +
   "Be concise and friendly.";
 
-export async function answer({
+// Labels shown next to each tool's task_update chunk while it runs, so
+// Slack's task timeline reads like a sentence instead of a function name.
+export const TOOL_TITLES: Record<string, string> = {
+  searchProducts: "Searching the catalog",
+  getProduct: "Looking up the product",
+  getAccountInfo: "Checking the account",
+  refundOrder: "Processing the refund",
+};
+
+export function streamAnswer({
   messages,
   conversationId,
 }: {
   messages: ModelMessage[];
   conversationId: string;
-}): Promise<string> {
-  const result = await generateText({
+}) {
+  return streamText({
     model: openrouter.chat(resolveModel()),
     instructions: {
       role: "system",
@@ -47,6 +57,4 @@ export async function answer({
       functionId: "slack-shopping-assistant",
     },
   });
-
-  return result.text;
 }

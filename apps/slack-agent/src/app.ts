@@ -1,9 +1,10 @@
-import { App } from "@slack/bolt";
-import type { SayFn } from "@slack/bolt";
-import type { AppMentionEvent, MessageEvent } from "@slack/types";
+import { App, Assistant } from "@slack/bolt";
+import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
+import type { BlockFeedbackButtonsAction } from "@slack/bolt";
+import type { AppMentionEvent, KnownBlock, MessageEvent } from "@slack/types";
 import type { WebClient } from "@slack/web-api";
 import type { ModelMessage } from "ai";
-import { answer } from "./agent";
+import { streamAnswer, TOOL_TITLES } from "./agent";
 
 const required = [
   "SLACK_BOT_TOKEN",
@@ -21,36 +22,143 @@ for (const name of required) {
   }
 }
 
+const ERROR_REPLY = "The shopping assistant hit an error. Please try again.";
+
+const FEEDBACK_BLOCK: KnownBlock[] = [
+  {
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: "AI-generated. Check order details before you act on them.",
+      },
+    ],
+  },
+  {
+    type: "context_actions",
+    elements: [
+      {
+        type: "feedback_buttons",
+        action_id: "feedback",
+        positive_button: {
+          text: { type: "plain_text", text: "Good" },
+          value: "positive",
+        },
+        negative_button: {
+          text: { type: "plain_text", text: "Bad" },
+          value: "negative",
+        },
+      },
+    ],
+  },
+];
+
+// Shopping-flavored status lines shown while the assistant is thinking.
+const LOADING_MESSAGES = [
+  "Checking the shelves...",
+  "Reading the order book...",
+  "Counting loyalty points...",
+  "Fetching product details...",
+];
+
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   appToken: process.env.SLACK_APP_TOKEN,
   socketMode: true,
 });
 
-const ERROR_REPLY = "The shopping assistant hit an error. Please try again.";
+async function respond({
+  client,
+  event,
+  text,
+  sayStream,
+  setStatus,
+  say,
+}: {
+  client: WebClient;
+  event: { channel: string; ts: string; thread_ts?: string; user?: string };
+  text: string;
+  sayStream: SayStreamFn;
+  setStatus: SetStatusFn;
+  say: SayFn;
+}) {
+  const conversationId = event.thread_ts ?? event.ts;
+  let stream: ReturnType<SayStreamFn> | undefined;
+
+  try {
+    await setStatus({
+      status: "is thinking...",
+      loading_messages: LOADING_MESSAGES,
+    }).catch((error) => console.warn("setStatus failed", error));
+
+    const messages = await loadThread({ client, event, conversationId, text });
+
+    stream = sayStream({ task_display_mode: "timeline" });
+
+    const taskStatus = {
+      "tool-call": "in_progress",
+      "tool-result": "complete",
+      "tool-error": "error",
+    } as const;
+
+    for await (const part of streamAnswer({ messages, conversationId })
+      .fullStream) {
+      switch (part.type) {
+        case "text-delta":
+          await stream.append({ markdown_text: part.text });
+          break;
+        case "tool-call":
+        case "tool-result":
+        case "tool-error":
+          await stream.append({
+            chunks: [
+              {
+                type: "task_update",
+                id: part.toolCallId,
+                title: TOOL_TITLES[part.toolName] ?? part.toolName,
+                status: taskStatus[part.type],
+              },
+            ],
+          });
+          break;
+        case "error":
+          throw part.error;
+        default:
+          break;
+      }
+    }
+
+    await stream.stop({ blocks: FEEDBACK_BLOCK });
+  } catch (error) {
+    await setStatus("").catch((statusError) =>
+      console.warn("setStatus failed", statusError),
+    );
+    if (stream) {
+      await stream.stop({ markdown_text: ERROR_REPLY });
+    } else {
+      await say({ text: ERROR_REPLY, thread_ts: conversationId });
+    }
+    throw error;
+  }
+}
 
 app.event(
   "app_mention",
   async ({
     event,
     say,
+    sayStream,
+    setStatus,
     client,
   }: {
     event: AppMentionEvent;
     say: SayFn;
+    sayStream: SayStreamFn;
+    setStatus: SetStatusFn;
     client: WebClient;
   }) => {
-    const conversationId = event.thread_ts ?? event.ts;
     const text = stripMention(event.text ?? "");
-
-    try {
-      const messages = await loadThread({ client, event, conversationId, text });
-      const reply = await answer({ messages, conversationId });
-      await say({ text: reply, thread_ts: conversationId });
-    } catch (error) {
-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
-      throw error;
-    }
+    await respond({ client, event, text, sayStream, setStatus, say });
   },
 );
 
@@ -59,10 +167,14 @@ app.event(
   async ({
     event,
     say,
+    sayStream,
+    setStatus,
     client,
   }: {
     event: MessageEvent;
     say: SayFn;
+    sayStream: SayStreamFn;
+    setStatus: SetStatusFn;
     client: WebClient;
   }) => {
     // Only handle plain DM messages: skip subtyped events (edits, deletes,
@@ -72,19 +184,62 @@ app.event(
     if (event.subtype !== undefined) return;
     if (event.channel_type !== "im" || event.bot_id) return;
 
-    const conversationId = event.thread_ts ?? event.ts;
     const text = stripMention(event.text ?? "");
+    await respond({ client, event, text, sayStream, setStatus, say });
+  },
+);
 
-    try {
-      const messages = await loadThread({ client, event, conversationId, text });
-      const reply = await answer({ messages, conversationId });
-      await say({ text: reply, thread_ts: conversationId });
-    } catch (error) {
-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
-      throw error;
+app.action<BlockFeedbackButtonsAction>(
+  "feedback",
+  async ({ ack, payload, body, client }) => {
+    await ack();
+    console.log("feedback", payload.value, "for message", body.message?.ts);
+
+    if (body.channel && body.user) {
+      await client.chat.postEphemeral({
+        channel: body.channel.id,
+        user: body.user.id,
+        text: "Thanks for the feedback.",
+        thread_ts: body.message?.thread_ts ?? body.message?.ts,
+      });
     }
   },
 );
+
+// Both this Assistant and the plain "message" handler above exist because
+// Slack routes DM threads through the Assistant middleware only when the
+// app's "Agents & AI Apps" feature is turned on; the "message" handler still
+// serves top-level DMs when that feature is off.
+const assistant = new Assistant({
+  threadStarted: async ({ say, setSuggestedPrompts }) => {
+    await say("Hi! Ask me about products, orders, or refunds.");
+    await setSuggestedPrompts({
+      title: "Try one of these",
+      prompts: [
+        { title: "Where is my order?", message: "Where is my latest order?" },
+        { title: "Find a hoodie", message: "Show me hoodies under $60" },
+        {
+          title: "Loyalty points",
+          message: "How many loyalty points do I have?",
+        },
+        {
+          title: "Refund an order",
+          message: "Can I get a refund for order 1029?",
+        },
+      ],
+    });
+  },
+  userMessage: async ({ client, event, say, sayStream, setStatus, setTitle }) => {
+    if (event.subtype !== undefined || event.bot_id) return;
+    if (!event.text) return;
+
+    const text = stripMention(event.text);
+    await setTitle(text).catch((error) => console.warn("setTitle failed", error));
+    await respond({ client, event, text, sayStream, setStatus, say });
+  },
+});
+
+app.assistant(assistant);
 
 // Mentions arrive as "<@U0123> show me the shoes collection" - strip the
 // leading mention so the model sees a plain question.
@@ -95,7 +250,7 @@ function stripMention(text: string): string {
 // Gives the agent thread memory: without a thread_ts the event is the start
 // of a new thread, so its own text is the whole history. With a thread_ts,
 // replay the thread from Slack so follow-ups like "refund that order" carry
-// the context a fresh call to answer() would otherwise lose.
+// the context a fresh call to streamAnswer() would otherwise lose.
 async function loadThread({
   client,
   event,

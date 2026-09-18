@@ -4,10 +4,18 @@ features:
   bot_user:
     display_name: acme-shop
     always_online: true
+  app_home:
+    home_tab_enabled: false
+    messages_tab_enabled: true
+    messages_tab_read_only_enabled: false
+  assistant_view:
+    assistant_description: "Answers questions about Acme Store products, orders, and refunds."
+    suggested_prompts: []
 oauth_config:
   scopes:
     bot:
       - app_mentions:read
+      - assistant:write
       - channels:history
       - chat:write
       - groups:history
@@ -18,9 +26,11 @@ settings:
   event_subscriptions:
     bot_events:
       - app_mention
+      - assistant_thread_context_changed
+      - assistant_thread_started
       - message.im
   interactivity:
-    is_enabled: false
+    is_enabled: true
   org_deploy_enabled: false
   socket_mode_enabled: true
   token_rotation_enabled: false

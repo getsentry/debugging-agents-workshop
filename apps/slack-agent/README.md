@@ -24,4 +24,16 @@ message, so follow-ups like "refund that order" work.
 7. `npm run dev`
 8. DM the bot: "show me the shoes collection".
 
+## What the agent does in Slack
+
+- It shows a status message while it works.
+- It streams the reply as it writes it.
+- It shows each tool call as a task in a timeline.
+- It adds feedback buttons under each reply.
+- In a DM, it shows an assistant panel with suggested prompts.
+
+Note: an app created before this manifest must have its manifest updated on
+the App Manifest page at api.slack.com, then be reinstalled. This gives the
+app the assistant panel and the feedback buttons.
+
 Sentry is added to this app in `labs/04-slack-agent.md`.
