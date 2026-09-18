@@ -120,6 +120,13 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   locally on 2026-09-18: `sample.diff` is 1 trace, 6 chat spans, 2 subagents,
   about 19k input tokens; `large.diff` with the fan-out patch is 1 trace,
   17 chat spans, 12 subagents, 229k input tokens, 105k of them uncached.
+  Measured in GitHub Actions on 2026-09-18 with two eight-file pull
+  requests (#3 stock reviewer, #4 fan-out patch; branches
+  `lab5/baseline-pr` and `lab5/fanout-pr` on base `lab5/instrumented`):
+  stock is 6 chat spans, 3 agent spans, 28.5k input tokens with 13.1k
+  cached, 7k output tokens, and an 80-second job; fan-out is 13 chat spans,
+  10 agent spans, 88k input tokens with 31.7k cached, 30k output tokens,
+  and a 270-second job. Both pull request comments find the same bugs.
 - **Takeaway.** Short-lived process: ask for flush, release, environment.
   OpenTelemetry frameworks need an exporter prompt. Every fresh subagent
   conversation is uncached, so compare runs, not spans.
