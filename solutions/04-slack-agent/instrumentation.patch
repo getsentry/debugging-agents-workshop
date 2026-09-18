@@ -14,12 +14,12 @@ index 9e69a32..6a2175c 100644
 +# Optional. Read automatically by the SDK; not passed to Sentry.init.
 +SENTRY_RELEASE=
 diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
-index 2cb0642..5c48cfd 100644
+index f2182b5..0499ba2 100644
 --- a/apps/slack-agent/README.md
 +++ b/apps/slack-agent/README.md
-@@ -36,4 +36,12 @@ Note: an app created before this manifest must have its manifest updated on
- the App Manifest page at api.slack.com, then be reinstalled. This gives the
- app the assistant panel and the feedback buttons.
+@@ -37,4 +37,12 @@ app created from an older manifest must have its manifest replaced on the App
+ Manifest page at api.slack.com, then be reinstalled. Slack does not let an
+ app go back to the older assistant experience.
  
 -Sentry is added to this app in `labs/04-slack-agent.md`.
 +## Sentry
@@ -1013,13 +1013,13 @@ index d5c89ef..751dc93 100644
      "ai": "7.0.64",
      "dotenv": "17.4.2",
 diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
-index e5c4e88..d2dd5c8 100644
+index b884566..571e54f 100644
 --- a/apps/slack-agent/src/app.ts
 +++ b/apps/slack-agent/src/app.ts
 @@ -1,3 +1,5 @@
 +import "./instrument";
 +import * as Sentry from "@sentry/node";
- import { App, Assistant } from "@slack/bolt";
+ import { App } from "@slack/bolt";
  import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
  import type { BlockFeedbackButtonsAction } from "@slack/bolt";
 @@ -85,64 +87,81 @@ async function respond({
