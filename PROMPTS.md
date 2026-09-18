@@ -146,8 +146,8 @@ two subagent spans, and the total input tokens for the run.
 ### Step 3. Ship the regression
 
 ```text
-Compare total input tokens per run across the last three runs of the
-pr-reviewer project, and list how many subagent spans each run had.
+Compare the last two releases of the pr-reviewer project: total input
+tokens, cached input tokens, and the number of subagent spans per run.
 ```
 
 ## Lab 6. Alerts and dashboards

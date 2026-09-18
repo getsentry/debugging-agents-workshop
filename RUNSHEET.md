@@ -94,11 +94,14 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 
 - **Outcome.** One trace per workflow run with the lead, two subagents, and
   the `post_review` tool, release set to the commit SHA, environment
-  `github-actions`. After the fan-out patch, an eight-file pull request
-  costs about eight times the tokens of a one-file one.
+  `github-actions`. The lead's calls read the cached prefix; the subagent
+  calls read nothing. After the fan-out patch, an eight-file pull request
+  runs nine subagents instead of two and costs about eight times the tokens
+  of a one-file one, all of it uncached.
 - **Prompt.** The lab 5 prompt (exporter, release, environment, tags,
-  flush), then the verify prompt, then "Compare total input tokens per run
-  across the last three runs".
+  flush), then the verify prompt, then "Compare the last two releases:
+  total input tokens, cached input tokens, and the number of subagent spans
+  per run".
 - **Code.** `src/sentry.ts`: `enableOpenTelemetrySetup: true`,
   `environment` and `release` from the Actions environment, the AI provider
   integrations filtered out because pi-ai depends on `openai`, and
@@ -107,12 +110,19 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   scope reset that stops the SDK transport's tracing suppression from
   leaking into Flue's later spans. `.github/workflows/review.yml`: the two
   secrets. The flush before exit.
-  Then `regressions/per-file-fanout.patch`.
-- **Sentry UI.** The trace waterfall. Explore > Spans, input tokens per run
-  by release, and the pull request comment next to it, which looks the same
-  for both runs.
+  Then `apps/pr-reviewer/regressions/per-file-fanout.patch`, applied from
+  the repository root.
+- **Sentry UI.** The trace waterfall. Explore > Spans, `gen_ai.operation.name:chat`
+  with the input, cache read, and cache write columns: the lead's four calls
+  on `sample.diff` read 0, 1339, 2092, and 5463 cached tokens; the two
+  subagent calls read 0. Then the same view grouped by release, and the pull
+  request comment next to it, which looks the same for both runs. Measured
+  locally on 2026-09-18: `sample.diff` is 1 trace, 6 chat spans, 2 subagents,
+  about 19k input tokens; `large.diff` with the fan-out patch is 1 trace,
+  17 chat spans, 12 subagents, 229k input tokens, 105k of them uncached.
 - **Takeaway.** Short-lived process: ask for flush, release, environment.
-  OpenTelemetry frameworks need an exporter prompt. Compare runs, not spans.
+  OpenTelemetry frameworks need an exporter prompt. Every fresh subagent
+  conversation is uncached, so compare runs, not spans.
 
 ## Lab 6. Alerts and dashboards per critical path (10 minutes, hands-on)
 

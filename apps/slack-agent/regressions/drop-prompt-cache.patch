@@ -1,7 +1,7 @@
-diff --git a/src/agent.ts b/src/agent.ts
+diff --git a/apps/slack-agent/src/agent.ts b/apps/slack-agent/src/agent.ts
 index d47a779..c2dfbdd 100644
---- a/src/agent.ts
-+++ b/src/agent.ts
+--- a/apps/slack-agent/src/agent.ts
++++ b/apps/slack-agent/src/agent.ts
 @@ -1,7 +1,7 @@
  import { createOpenRouter } from "@openrouter/ai-sdk-provider";
  import { generateText, isStepCount } from "ai";

@@ -1,7 +1,7 @@
-diff --git a/src/agents/review.ts b/src/agents/review.ts
-index fbb439f..2f69a9b 100644
---- a/src/agents/review.ts
-+++ b/src/agents/review.ts
+diff --git a/apps/pr-reviewer/src/agents/review.ts b/apps/pr-reviewer/src/agents/review.ts
+index 0000000..0000000 100644
+--- a/apps/pr-reviewer/src/agents/review.ts
++++ b/apps/pr-reviewer/src/agents/review.ts
 @@ -31,7 +31,7 @@ export function ReviewLead() {
  
  	useSubagent({
@@ -9,18 +9,19 @@ index fbb439f..2f69a9b 100644
 -		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions.',
 +		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions. Reviews a single file in the context of the whole diff.',
  		agent: CorrectnessReviewer,
- 		model: 'openrouter/anthropic/claude-haiku-4.5',
+ 		model: 'openrouter/anthropic/claude-sonnet-5',
  	});
-@@ -94,9 +94,9 @@ export function ReviewLead() {
+@@ -94,9 +94,10 @@ export function ReviewLead() {
  	return `You are the lead reviewer of a pull request. Work through these steps in order:
  
  1. Load the diff with the read_diff tool, using the file path given in the user message.
 -2. Delegate two review passes: one task to correctness-reviewer, one task to style-reviewer.
 -   Issue both tasks in a single batch so they run in parallel, and include the complete diff
 -   text in each task message — subagents cannot see this conversation.
-+2. Delegate one correctness-reviewer task per changed file, each with the complete diff text,
-+   plus one style-reviewer task, all in one batch so they run in parallel — subagents cannot
-+   see this conversation.
++2. Count the "diff --git" headers in the diff. Issue exactly that many correctness-reviewer
++   tasks, one per changed file, naming the file, plus one style-reviewer task, all in one batch
++   so they run in parallel. Paste the complete, untruncated diff text into every task message —
++   subagents cannot see this conversation. Never group files into one task.
  3. Synthesize everything into one review: a one-line verdict, then findings ordered by
     severity (correctness before style).
  4. Publish the review with the post_review tool, exactly once.

@@ -1,0 +1,362 @@
+diff --git a/apps/storefront/.env.example b/apps/storefront/.env.example
+index 08e3703..9ea2eea 100644
+--- a/apps/storefront/.env.example
++++ b/apps/storefront/.env.example
+@@ -4,11 +4,11 @@
+ DATABASE_URL=
+ DATABASE_URL_UNPOOLED=
+ 
+-# Mistral API key (https://console.mistral.ai/api-keys) — powers the shopping assistant
+-MISTRAL_API_KEY=
++# OpenRouter API key (https://openrouter.ai/keys) — powers the shopping assistant
++OPENROUTER_API_KEY=
+ # Optional model id; must be one of SUPPORTED_MODELS in lib/ai/models.ts,
+-# otherwise the default (mistral-small-latest) is used
+-MISTRAL_MODEL=
++# otherwise the default (anthropic/claude-sonnet-5) is used
++OPENROUTER_MODEL=
+ 
+ # Storefront branding shown in the layout metadata and footer
+ COMPANY_NAME="Acme, Inc."
+diff --git a/apps/storefront/README.md b/apps/storefront/README.md
+index 3d21c30..fdd5355 100644
+--- a/apps/storefront/README.md
++++ b/apps/storefront/README.md
+@@ -16,8 +16,9 @@ Built on the [Next.js Commerce](https://github.com/vercel/commerce) template
+   `lib/db/schema.ts` defines the tables; `scripts/db-seed.ts` seeds them from
+   the fixed catalog in `lib/db/data.ts`.
+ - **Assistant** — a slide-over chat panel (AI Elements + `useChat`) streaming
+-  from `app/api/chat`, which runs `streamText` against Mistral with four
+-  tools: `searchProducts`, `getProduct`, `getAccountInfo`, and `refundOrder`.
++  from `app/api/chat`, which runs `streamText` against Claude Sonnet 5
++  through OpenRouter with four tools: `searchProducts`, `getProduct`,
++  `getAccountInfo`, and `refundOrder`.
+   Tool results render as **generative UI** — product cards and an account
+   card. The store has no sign-in; `lib/demo-user` is the one shopper.
+ - **The planted bug** — `refundOrder` calls `selectPayment` in
+@@ -35,12 +36,12 @@ Requires Node.js >= 22. From the repo root:
+ ```
+ 
+ This installs dependencies, provisions a free Postgres database on Neon (or
+-reuses `DATABASE_URL` if already set), seeds it, and asks for a Mistral API
+-key. By hand instead:
++reuses `DATABASE_URL` if already set), seeds it, and asks for an OpenRouter
++API key. By hand instead:
+ 
+ ```bash
+ npm install
+-cp .env.example .env.local   # fill in DATABASE_URL and MISTRAL_API_KEY
++cp .env.example .env.local   # fill in DATABASE_URL and OPENROUTER_API_KEY
+ npm run db:seed
+ ```
+ 
+diff --git a/apps/storefront/app/api/chat/route.ts b/apps/storefront/app/api/chat/route.ts
+index 2a54a54..d95d031 100644
+--- a/apps/storefront/app/api/chat/route.ts
++++ b/apps/storefront/app/api/chat/route.ts
+@@ -1,4 +1,4 @@
+-import { mistral } from "@ai-sdk/mistral";
++import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+ import {
+   convertToModelMessages,
+   createUIMessageStreamResponse,
+@@ -6,13 +6,16 @@ import {
+   streamText,
+   toUIMessageStream,
+ } from "ai";
++import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
+ import { resolveModel } from "lib/ai/models";
+ import { createTools, type AssistantUIMessage } from "lib/ai/tools";
+ import { DEMO_USER } from "lib/demo-user";
+ 
+ export const maxDuration = 30;
+ 
+-const instructions =
++const openrouter = createOpenRouter();
++
++const assistantInstructions =
+   "You are the shopping assistant for Acme Store. " +
+   "Use searchProducts to find products (search with product-type keywords " +
+   'like "hoodie" or "mug", or browse a collection), getProduct for one ' +
+@@ -30,8 +33,12 @@ export async function POST(req: Request) {
+     await req.json();
+ 
+   const result = streamText({
+-    model: mistral(resolveModel()),
+-    instructions,
++    model: openrouter.chat(resolveModel()),
++    instructions: {
++      role: "system",
++      content: `${assistantInstructions}\n\n${STORE_POLICIES}`,
++      providerOptions: PROMPT_CACHE_OPTIONS,
++    },
+     messages: await convertToModelMessages(messages),
+     tools: createTools(DEMO_USER.id, id),
+     stopWhen: isStepCount(5),
+@@ -39,10 +46,6 @@ export async function POST(req: Request) {
+     telemetry: {
+       functionId: "shopping-assistant",
+     },
+-    // Repeated turns in one conversation share the cache prefix.
+-    providerOptions: {
+-      mistral: { promptCacheKey: id ?? "shopping-assistant" },
+-    },
+   });
+ 
+   return createUIMessageStreamResponse({
+diff --git a/apps/storefront/app/layout.tsx b/apps/storefront/app/layout.tsx
+index f3c1044..ede7ed0 100644
+--- a/apps/storefront/app/layout.tsx
++++ b/apps/storefront/app/layout.tsx
+@@ -38,7 +38,7 @@ export default async function RootLayout({
+           <Navbar />
+           <main>
+             {children}
+-            <Toaster closeButton />
++            <Toaster closeButton position="top-center" />
+             <WelcomeToast />
+           </main>
+           {/* useChat creates a random per-visitor chat id, so the assistant
+diff --git a/apps/storefront/lib/ai/instructions.ts b/apps/storefront/lib/ai/instructions.ts
+new file mode 100644
+index 0000000..406abc0
+--- /dev/null
++++ b/apps/storefront/lib/ai/instructions.ts
+@@ -0,0 +1,33 @@
++// "ai" re-exports many @ai-sdk/provider-utils types but not this one, so it
++// comes from the underlying package instead.
++import type { ProviderOptions } from "@ai-sdk/provider-utils";
++
++// Anthropic only caches prompt prefixes of at least 1024 tokens (Sonnet 5),
++// so the policies make the system prompt cacheable and give the assistant
++// grounded answers.
++export const STORE_POLICIES = `Acme Store Policies
++
++Shipping regions and delivery times. Acme Store ships to the United States, Canada, the United Kingdom, the European Union, and Australia. Standard shipping within the United States takes three to five business days after the order leaves the warehouse. Expedited shipping within the United States takes one to two business days. Standard shipping to Canada takes five to eight business days, and standard shipping to the United Kingdom, the European Union, and Australia takes seven to fourteen business days, depending on customs processing in the destination country. Orders placed before two in the afternoon Pacific time on a business day usually leave the warehouse the same day; orders placed later leave the next business day. Acme Store does not ship to addresses outside the five regions listed above, and it does not ship to freight forwarders or post office boxes for expedited orders. A tracking link goes out by email as soon as a package ships, and the same link is available from the customer's order history.
++
++Returns and exchanges. Most items can be returned within thirty days of delivery if they are unworn, unwashed, and still have their original tags. Final sale items, gift cards, and any item marked as a limited drop are not eligible for return. To start a return, the customer asks the assistant or uses the account page to request a return label; a prepaid label is emailed once the request is approved. Exchanges for a different size in the same style ship as soon as the original item is scanned by the carrier, so the customer is not without the item for long. Items that arrive damaged or defective can be returned at any time within ninety days of delivery, and Acme Store covers return shipping for those cases.
++
++Refunds. Once a returned item is received and inspected, the refund goes back to the original payment method within five to ten business days. Acme Store cannot issue a refund to a different card or account than the one used for the original purchase. Before processing any refund, the assistant must confirm the order id with the customer; refunds are never issued from a description of the order alone, because two orders can share similar items. If a refund fails, the assistant should apologize briefly, note that the support team has been notified, and avoid retrying the same request automatically.
++
++Order changes and cancellation. An order can be changed or canceled only while it is still in the "processing" status, before it has been picked and packed. Once an order moves to "preparing to ship" or later, it can no longer be changed, and the customer needs to wait for delivery and start a return instead. Address corrections follow the same window: the assistant can update a shipping address only for an order that is still processing. Requests to change payment method are not supported after an order is placed; the customer would need to cancel and reorder.
++
++Loyalty program. Every signed-in customer earns one loyalty point for every dollar spent, before tax and after any discount. Points post to the account within twenty-four hours of an order shipping. Points expire after twelve months of account inactivity, meaning twelve months with no purchase and no login; any activity resets the clock for the whole balance. Points can be redeemed at checkout in blocks of one hundred, and each block of one hundred points is worth five dollars off the order subtotal. Points cannot be redeemed for cash, transferred between accounts, or combined with a percentage-off promotional code, though they can be combined with a flat-dollar promotional code.
++
++Gift cards and gift wrapping. Gift cards are sold in fixed denominations of twenty-five, fifty, and one hundred dollars, and they never expire. A gift card can be applied to any order at checkout and can be combined with a promotional code. Gift cards themselves cannot be purchased using another gift card. Gift wrapping is available for two dollars per item at checkout; wrapped items ship in a separate box from unwrapped items in the same order, and a personalized note can be added at no extra charge, up to two hundred characters.
++
++Apparel sizing guide. Acme Store apparel runs true to size based on United States standard sizing. For tops, a size small fits a chest of thirty-four to thirty-six inches, a medium fits thirty-eight to forty inches, a large fits forty-two to forty-four inches, and an extra-large fits forty-six to forty-eight inches. Hoodies and crewnecks are cut with a half inch of extra room through the chest and shoulders compared with the tee shirts, so customers between sizes are advised to size down for a snugger fit or keep their usual size for a relaxed fit. Hats are offered in one adjustable size that fits a head circumference of twenty-one to twenty-four inches. When a customer is between two sizes, the assistant should recommend sizing up for outerwear and sizing down for fitted tees.
++
++Product care. Cotton tees, hoodies, and crewnecks should be washed in cold water on a gentle cycle and tumble dried on low heat to avoid shrinkage. Printed graphics should be washed inside out to protect the print, and ironing directly over a graphic is not recommended. Mugs and water bottles are dishwasher safe on the top rack, except for water bottles with a vacuum-insulated double wall, which should be hand washed to protect the seal. Tote bags and desk mats can be spot cleaned with a damp cloth; the desk mat should not be machine washed, since its rubber backing can crack.
++
++Price matching. Acme Store matches its own listed price if an item the customer already purchased drops in price within seven days of the original order, excluding flash sales and members-only promotions. The assistant can issue the price difference as store credit once the customer provides the order id and the current lower price. Acme Store does not match prices from other retailers.
++
++Privacy. The assistant only has access to the account, orders, and loyalty history of the customer who is currently signed in, and it must never reveal another customer's name, address, order history, or payment details, even if asked directly or given what looks like another customer's order id. If a request seems to be about someone else's account, the assistant should decline and suggest the customer contact support directly with proof of identity.`;
++
++// The breakpoint caches tools plus system prompt; without it Anthropic caches nothing.
++export const PROMPT_CACHE_OPTIONS = {
++  openrouter: { cacheControl: { type: "ephemeral" } },
++} satisfies ProviderOptions;
+diff --git a/apps/storefront/lib/ai/models.ts b/apps/storefront/lib/ai/models.ts
+index b4a2f83..ca0260c 100644
+--- a/apps/storefront/lib/ai/models.ts
++++ b/apps/storefront/lib/ai/models.ts
+@@ -1,22 +1,25 @@
+ import { z } from "zod";
+ 
+-// Models the assistant is allowed to run, as Mistral ids.
++// Models the assistant is allowed to run, as OpenRouter ids. Each id also
++// exists at https://openrouter.ai/api/v1/models, which is where the AI
++// SDK's gen_ai.cost.* attributes get their pricing.
+ export const SUPPORTED_MODELS = [
+-  "mistral-small-latest",
+-  "mistral-medium-latest",
+-  "mistral-large-latest",
++  "anthropic/claude-sonnet-5",
++  "anthropic/claude-haiku-4.5",
++  "openai/gpt-5-mini",
++  "google/gemini-2.5-flash",
+ ] as const;
+ 
+ export type SupportedModel = (typeof SUPPORTED_MODELS)[number];
+ 
+-export const DEFAULT_MODEL: SupportedModel = "mistral-small-latest";
++export const DEFAULT_MODEL: SupportedModel = "anthropic/claude-sonnet-5";
+ 
+ const supportedModel = z.enum(SUPPORTED_MODELS);
+ 
+-// MISTRAL_MODEL is an untrusted string, so it goes through a parse: an id
++// OPENROUTER_MODEL is an untrusted string, so it goes through a parse: an id
+ // outside the allow-list falls back to the default instead of reaching
+-// Mistral unvalidated.
++// OpenRouter unvalidated.
+ export function resolveModel(): SupportedModel {
+-  const configured = supportedModel.safeParse(process.env.MISTRAL_MODEL);
++  const configured = supportedModel.safeParse(process.env.OPENROUTER_MODEL);
+   return configured.success ? configured.data : DEFAULT_MODEL;
+ }
+diff --git a/apps/storefront/package-lock.json b/apps/storefront/package-lock.json
+index 9c3d119..fd84098 100644
+--- a/apps/storefront/package-lock.json
++++ b/apps/storefront/package-lock.json
+@@ -5,10 +5,10 @@
+   "packages": {
+     "": {
+       "dependencies": {
+-        "@ai-sdk/mistral": "^4.0.30",
+         "@ai-sdk/react": "4.0.67",
+         "@headlessui/react": "^2.2.0",
+         "@heroicons/react": "^2.2.0",
++        "@openrouter/ai-sdk-provider": "3.0.0",
+         "@streamdown/cjk": "^1.0.3",
+         "@streamdown/code": "^1.1.1",
+         "@streamdown/math": "^1.0.2",
+@@ -89,41 +89,6 @@
+         "zod": "^3.25.76 || ^4.1.8"
+       }
+     },
+-    "node_modules/@ai-sdk/mistral": {
+-      "version": "4.0.30",
+-      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/mistral/-/mistral-4.0.30.tgz",
+-      "integrity": "sha512-TOleiDJTzGVwKEyS/cosDoqoT/luPUmSBf4chSatMcX9IjfELDsMIDaaCJ6IT/YYlIO9cg0tAdnlA5mnJSk/+A==",
+-      "license": "Apache-2.0",
+-      "dependencies": {
+-        "@ai-sdk/provider": "4.0.7",
+-        "@ai-sdk/provider-utils": "5.0.28"
+-      },
+-      "engines": {
+-        "node": ">=22"
+-      },
+-      "peerDependencies": {
+-        "zod": "^3.25.76 || ^4.1.8"
+-      }
+-    },
+-    "node_modules/@ai-sdk/mistral/node_modules/@ai-sdk/provider-utils": {
+-      "version": "5.0.28",
+-      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider-utils/-/provider-utils-5.0.28.tgz",
+-      "integrity": "sha512-TnHUyd/rCYQqHg5RuiOaz/hUql6U+kbUaBW0Rp+0N5UhnAInA9CzzV0HXvuAAPwppDsK6fAx9Rd+tRawpJ/3pg==",
+-      "license": "Apache-2.0",
+-      "dependencies": {
+-        "@ai-sdk/provider": "4.0.7",
+-        "@standard-schema/spec": "^1.1.0",
+-        "@workflow/serde": "4.1.0",
+-        "eventsource-parser": "^3.0.8",
+-        "undici": "^7.28.0"
+-      },
+-      "engines": {
+-        "node": ">=22"
+-      },
+-      "peerDependencies": {
+-        "zod": "^3.25.76 || ^4.1.8"
+-      }
+-    },
+     "node_modules/@ai-sdk/provider": {
+       "version": "4.0.7",
+       "resolved": "https://registry.npmjs.org/@ai-sdk/provider/-/provider-4.0.7.tgz",
+@@ -1988,6 +1953,19 @@
+         "node": ">= 10"
+       }
+     },
++    "node_modules/@openrouter/ai-sdk-provider": {
++      "version": "3.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
++      "integrity": "sha512-m9XTSWoODH2RM5OsZpaGiN7QRR8cdP5paBWq699Tu3JVmGPBKT8xF8XwV0ZBVVsjikD/JgWfak4VSsTR4wAVbg==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=22"
++      },
++      "peerDependencies": {
++        "ai": "^7.0.0",
++        "zod": "^3.25.76 || ^4.1.8"
++      }
++    },
+     "node_modules/@oxlint/binding-android-arm-eabi": {
+       "version": "1.78.0",
+       "resolved": "https://sfw.security.sentry.io/npm/@oxlint/binding-android-arm-eabi/-/binding-android-arm-eabi-1.78.0.tgz",
+diff --git a/apps/storefront/package.json b/apps/storefront/package.json
+index 84da2c6..70870cf 100644
+--- a/apps/storefront/package.json
++++ b/apps/storefront/package.json
+@@ -15,7 +15,6 @@
+     "db:seed": "tsx scripts/db-seed.ts"
+   },
+   "dependencies": {
+-    "@ai-sdk/mistral": "4.0.30",
+     "@ai-sdk/react": "4.0.67",
+     "@headlessui/react": "^2.2.0",
+     "@heroicons/react": "^2.2.0",
+@@ -24,6 +23,7 @@
+     "@streamdown/math": "^1.0.2",
+     "@streamdown/mermaid": "^1.0.2",
+     "ai": "7.0.64",
++    "@openrouter/ai-sdk-provider": "3.0.0",
+     "class-variance-authority": "^0.7.1",
+     "clsx": "^2.1.1",
+     "cmdk": "^1.1.1",
+diff --git a/apps/storefront/regressions/README.md b/apps/storefront/regressions/README.md
+index c17fe61..28eba55 100644
+--- a/apps/storefront/regressions/README.md
++++ b/apps/storefront/regressions/README.md
+@@ -1,11 +1,12 @@
+ # Planted regressions
+ 
+-`drop-cache-key.patch` removes the `promptCacheKey` from the chat route. Every
+-turn then sends a prefix Mistral cannot match, so cached input tokens fall to
+-zero and the cost per conversation rises about three times.
++`drop-prompt-cache.patch` removes the `providerOptions` cache breakpoint from
++the chat route's system message. Every turn then sends a prefix Anthropic
++cannot match, so cached input tokens fall to zero and the cost per
++conversation rises about three times.
+ 
+ The presenter applies it live as a new release:
+ 
+-    git apply regressions/drop-cache-key.patch
++    git apply regressions/drop-prompt-cache.patch
+ 
+-Revert with `git apply -R regressions/drop-cache-key.patch`.
++Revert with `git apply -R regressions/drop-prompt-cache.patch`.
+diff --git a/apps/storefront/regressions/drop-cache-key.patch b/apps/storefront/regressions/drop-cache-key.patch
+deleted file mode 100644
+index 9e8bcc0..0000000
+--- a/apps/storefront/regressions/drop-cache-key.patch
++++ /dev/null
+@@ -1,13 +0,0 @@
+---- a/app/api/chat/route.ts
+-+++ b/app/api/chat/route.ts
+-@@ -39,10 +39,6 @@
+-     telemetry: {
+-       functionId: "shopping-assistant",
+-     },
+--    // Repeated turns in one conversation share the cache prefix.
+--    providerOptions: {
+--      mistral: { promptCacheKey: id ?? "shopping-assistant" },
+--    },
+-   });
+- 
+-   return createUIMessageStreamResponse({
+diff --git a/apps/storefront/regressions/drop-prompt-cache.patch b/apps/storefront/regressions/drop-prompt-cache.patch
+new file mode 100644
+index 0000000..f3c600b
+--- /dev/null
++++ b/apps/storefront/regressions/drop-prompt-cache.patch
+@@ -0,0 +1,21 @@
++diff --git a/app/api/chat/route.ts b/app/api/chat/route.ts
++index d95d031..9ec1a4b 100644
++--- a/app/api/chat/route.ts
+++++ b/app/api/chat/route.ts
++@@ -6,7 +6,7 @@ import {
++   streamText,
++   toUIMessageStream,
++ } from "ai";
++-import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
+++import { STORE_POLICIES } from "lib/ai/instructions";
++ import { resolveModel } from "lib/ai/models";
++ import { createTools, type AssistantUIMessage } from "lib/ai/tools";
++ import { DEMO_USER } from "lib/demo-user";
++@@ -37,7 +37,6 @@ export async function POST(req: Request) {
++     instructions: {
++       role: "system",
++       content: `${assistantInstructions}\n\n${STORE_POLICIES}`,
++-      providerOptions: PROMPT_CACHE_OPTIONS,
++     },
++     messages: await convertToModelMessages(messages),
++     tools: createTools(DEMO_USER.id, id),

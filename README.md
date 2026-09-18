@@ -15,9 +15,9 @@ to ask for and how to check the result.
 | `apps/slack-agent` | Long-lived Slack bot | Node, Bolt (Socket Mode), Vercel AI SDK, same Postgres | Follow along |
 | `apps/pr-reviewer` | GitHub Actions job | Node, Flue (OpenTelemetry), OpenRouter | Follow along |
 
-All three call models through OpenRouter: the storefront and the Slack agent
-run Claude Sonnet 5 through the Vercel AI SDK, and the PR reviewer runs Claude
-Haiku 4.5 through Flue. The presenter shares one OpenRouter key at the start
+All three call Claude Sonnet 5 through OpenRouter: the storefront and the
+Slack agent through the Vercel AI SDK, and the PR reviewer through Flue. The
+presenter shares one OpenRouter key at the start
 of the workshop, so no account is needed. Neon's instant Postgres needs no
 account either.
 

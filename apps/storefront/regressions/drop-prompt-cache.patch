@@ -1,7 +1,7 @@
-diff --git a/app/api/chat/route.ts b/app/api/chat/route.ts
+diff --git a/apps/storefront/app/api/chat/route.ts b/apps/storefront/app/api/chat/route.ts
 index d95d031..9ec1a4b 100644
---- a/app/api/chat/route.ts
-+++ b/app/api/chat/route.ts
+--- a/apps/storefront/app/api/chat/route.ts
++++ b/apps/storefront/app/api/chat/route.ts
 @@ -6,7 +6,7 @@ import {
    streamText,
    toUIMessageStream,

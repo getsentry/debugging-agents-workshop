@@ -6,7 +6,7 @@
 `apps/pr-reviewer` is a Flue agent that runs in GitHub Actions on every pull
 request. A lead agent reads the diff, sends it to two subagents, one for
 correctness and one for style, merges their findings, and posts one comment
-on the pull request. It runs on Claude Haiku 4.5 through OpenRouter and has
+on the pull request. It runs on Claude Sonnet 5 through OpenRouter and has
 no Sentry.
 
 What changes compared with the storefront and Slack:
@@ -72,18 +72,26 @@ You must see one root span for the run, two subagent spans under it, and a
 
 ## Step 3. Ship the regression
 
-The presenter applies `apps/pr-reviewer/regressions/per-file-fanout.patch`.
-The lead now sends one correctness task per changed file, each with the full
-diff. The presenter opens two pull requests: one that touches one file and
-one that touches eight.
+First look at the cache columns of the run from Step 2. The lead's second,
+third, and fourth calls read the cached prefix of the call before them. The
+two subagent calls read nothing: each subagent starts a fresh conversation
+with the full diff, so the diff is paid at the uncached input price once per
+subagent.
+
+The presenter applies `apps/pr-reviewer/regressions/per-file-fanout.patch`
+from the repository root. The lead now sends one correctness task per changed
+file, each with the full diff. The presenter opens a pull request that
+touches eight files with the patch in it; the workflow runs the patched
+reviewer on that pull request.
 
 Ask:
 
-> Compare total input tokens per run across the last three runs of the
-> pr-reviewer project, and list how many subagent spans each run had.
+> Compare the last two releases of the pr-reviewer project: total input
+> tokens, cached input tokens, and the number of subagent spans per run.
 
-The eight-file run costs about eight times the one-file run. Nobody sees
-this in the pull request comment. It is only visible in the trace.
+The eight-file run has nine subagent spans instead of two, and the extra
+input tokens are all uncached. Nobody sees this in the pull request comment.
+It is only visible in the trace.
 
 ## What you learned
 
@@ -91,5 +99,5 @@ this in the pull request comment. It is only visible in the trace.
   environment, or every run looks the same.
 - Flue and other OpenTelemetry frameworks need an exporter prompt, not an
   "add the SDK" prompt.
-- Cost regressions in fan-out agents scale with the input, so compare runs,
-  not single spans.
+- Cost regressions in fan-out agents scale with the input, and every fresh
+  subagent conversation is uncached. Compare runs, not single spans.

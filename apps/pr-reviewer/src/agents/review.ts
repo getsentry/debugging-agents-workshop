@@ -27,20 +27,20 @@ function StyleReviewer() {
 }
 
 export function ReviewLead() {
-	useModel('openrouter/anthropic/claude-haiku-4.5');
+	useModel('openrouter/anthropic/claude-sonnet-5');
 
 	useSubagent({
 		name: 'correctness-reviewer',
 		description: 'Reviews a unified diff for logic errors, edge cases, and behavioral regressions.',
 		agent: CorrectnessReviewer,
-		model: 'openrouter/anthropic/claude-haiku-4.5',
+		model: 'openrouter/anthropic/claude-sonnet-5',
 	});
 
 	useSubagent({
 		name: 'style-reviewer',
 		description: 'Reviews a unified diff for naming, clarity, dead code, and consistency.',
 		agent: StyleReviewer,
-		model: 'openrouter/anthropic/claude-haiku-4.5',
+		model: 'openrouter/anthropic/claude-sonnet-5',
 	});
 
 	useTool({
