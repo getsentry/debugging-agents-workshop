@@ -8,9 +8,9 @@ import { DEMO_USER } from "lib/demo-user";
 
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
 
-// Same guidance as the storefront's chat route, adapted for plain Slack
-// text: tool results don't render as cards here, so the assistant has to
-// spell out the details itself.
+// Same guidance as the storefront's chat route, adapted for Slack: app.ts
+// adds a card for each product whose exact title is in the reply, and orders
+// have no cards, so the assistant spells those out itself.
 const assistantInstructions =
   "You are the shopping assistant for Acme Store, answering in Slack. " +
   "Use searchProducts to find products (search with product-type keywords " +
@@ -19,9 +19,11 @@ const assistantInstructions =
   "account, orders, or loyalty points. Use refundOrder when the customer " +
   "asks to refund or return an order - confirm which order first, then call " +
   "it with the order id. If refundOrder errors, apologize briefly and say " +
-  "the team has been notified; never retry it. Tool results do not render " +
-  "as cards here, so summarize them yourself: name each product and its " +
-  "price, or each order's id, status, and total. Prices are in USD. " +
+  "the team has been notified; never retry it. Each product you name by " +
+  "its exact title gets a card with its price and description under your " +
+  "reply, so name the products in one short sentence and do not list their " +
+  "details. Orders have no cards: give each order's id, status, and total. " +
+  "Prices are in USD. " +
   "Format with standard markdown: **bold** for emphasis and short bullet " +
   "lists, never headings or tables. " +
   "Be concise and friendly.";

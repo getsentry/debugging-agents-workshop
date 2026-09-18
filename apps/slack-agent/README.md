@@ -3,9 +3,9 @@
 A Slack bot that answers shopping questions in a DM or when mentioned. It
 reuses the storefront's tools (`searchProducts`, `getProduct`,
 `getAccountInfo`, `refundOrder`) and the same Postgres database, so it can
-search the catalog and manage the same demo customer's orders - just as
-plain Slack text instead of cards. It reads the whole thread on every
-message, so follow-ups like "refund that order" work.
+search the catalog and manage the same demo customer's orders. It reads
+the whole thread on every message, so follow-ups like "refund that order"
+work.
 
 ## Setup
 
@@ -29,6 +29,7 @@ message, so follow-ups like "refund that order" work.
 - It shows a status message while it works.
 - It streams the reply as it writes it.
 - It shows each tool call as a task in a timeline.
+- It adds a card for each product that the reply names.
 - It adds feedback buttons under each reply.
 - In a DM, the Messages tab shows four suggested prompts from the manifest.
 

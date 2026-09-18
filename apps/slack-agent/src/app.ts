@@ -1,9 +1,15 @@
 import { App } from "@slack/bolt";
 import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
 import type { BlockFeedbackButtonsAction } from "@slack/bolt";
-import type { AppMentionEvent, KnownBlock, MessageEvent } from "@slack/types";
+import type {
+  AppMentionEvent,
+  CarouselBlock,
+  KnownBlock,
+  MessageEvent,
+} from "@slack/types";
 import type { WebClient } from "@slack/web-api";
 import type { ModelMessage } from "ai";
+import type { ProductCard } from "lib/ai/tools";
 import { streamAnswer, TOOL_TITLES } from "./agent";
 
 const required = [
@@ -101,10 +107,14 @@ async function respond({
       "tool-error": "error",
     } as const;
 
+    let reply = "";
+    const found = new Map<string, ProductCard>();
+
     for await (const part of streamAnswer({ messages, conversationId })
       .fullStream) {
       switch (part.type) {
         case "text-delta":
+          reply += part.text;
           await stream.append({ markdown_text: part.text });
           break;
         case "tool-call":
@@ -120,6 +130,13 @@ async function respond({
               },
             ],
           });
+          if (part.type === "tool-result" && !part.dynamic) {
+            if (part.toolName === "searchProducts") {
+              for (const p of part.output.products) found.set(p.handle, p);
+            } else if (part.toolName === "getProduct" && part.output.product) {
+              found.set(part.output.product.handle, part.output.product);
+            }
+          }
           break;
         case "error":
           throw part.error;
@@ -128,7 +145,12 @@ async function respond({
       }
     }
 
-    await stream.stop({ blocks: FEEDBACK_BLOCK });
+    // A search returns up to six products and the model often picks a few
+    // (for example "under $60"), so show only the ones the reply names.
+    const products = [...found.values()].filter((p) => reply.includes(p.title));
+    await stream.stop({
+      blocks: [...productCarousel(products), ...FEEDBACK_BLOCK],
+    });
   } catch (error) {
     if (stream) {
       await stream.stop({ markdown_text: ERROR_REPLY });
@@ -208,6 +230,22 @@ app.action<BlockFeedbackButtonsAction>(
     }
   },
 );
+
+function productCarousel(products: ProductCard[]): CarouselBlock[] {
+  if (products.length === 0) return [];
+  return [
+    {
+      type: "carousel",
+      // Slack limits: 10 cards per carousel, 200 characters per card body.
+      elements: products.slice(0, 10).map((p) => ({
+        type: "card",
+        title: { type: "mrkdwn", text: p.title },
+        subtitle: { type: "mrkdwn", text: `$${p.price}` },
+        body: { type: "mrkdwn", text: p.description.slice(0, 200) },
+      })),
+    },
+  ];
+}
 
 // Mentions arrive as "<@U0123> show me the shoes collection" - strip the
 // leading mention so the model sees a plain question.
