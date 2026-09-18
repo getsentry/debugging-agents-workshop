@@ -130,15 +130,18 @@ async function respond({
 
     await stream.stop({ blocks: FEEDBACK_BLOCK });
   } catch (error) {
-    await setStatus("").catch((statusError) =>
-      console.warn("setStatus failed", statusError),
-    );
     if (stream) {
       await stream.stop({ markdown_text: ERROR_REPLY });
     } else {
       await say({ text: ERROR_REPLY, thread_ts: conversationId });
     }
     throw error;
+  } finally {
+    // Slack's agent messaging experience keeps the status until the app
+    // clears it; the older assistant experience cleared it on the reply.
+    await setStatus("").catch((error) =>
+      console.warn("setStatus failed", error),
+    );
   }
 }
 
