@@ -14,7 +14,7 @@ index 9e69a32..6a2175c 100644
 +# Optional. Read automatically by the SDK; not passed to Sentry.init.
 +SENTRY_RELEASE=
 diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
-index c4b87b1..81d762c 100644
+index 9f91937..84cb7d2 100644
 --- a/apps/slack-agent/README.md
 +++ b/apps/slack-agent/README.md
 @@ -38,4 +38,12 @@ app created from an older manifest must have its manifest replaced on the App
@@ -1013,7 +1013,7 @@ index d5c89ef..751dc93 100644
      "ai": "7.0.64",
      "dotenv": "17.4.2",
 diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
-index 29d2937..0865e73 100644
+index 3043ae1..7986380 100644
 --- a/apps/slack-agent/src/app.ts
 +++ b/apps/slack-agent/src/app.ts
 @@ -1,3 +1,5 @@
