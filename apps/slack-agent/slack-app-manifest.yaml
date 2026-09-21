@@ -33,6 +33,7 @@ oauth_config:
 settings:
   event_subscriptions:
     bot_events:
+      - agent_session_stopped
       - app_mention
       - assistant_thread_context_changed
       - assistant_thread_started

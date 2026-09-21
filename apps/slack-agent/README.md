@@ -29,7 +29,12 @@ work.
 - It shows a status message while it works.
 - It streams the reply as it writes it.
 - It shows each tool call as a task in a timeline.
-- It adds a card for each product that the reply names.
+- It adds a card for each product that the reply names. The button on a card
+  asks the agent about that product in the same thread.
+- It adds a table row for each order that the reply names.
+- It adds a warning line when a tool call fails, for example a refund.
+- It names each thread after the first message.
+- It stops the model call when the user presses Slack's stop button.
 - It adds feedback buttons under each reply.
 - In a DM, the Messages tab shows four suggested prompts from the manifest.
 

@@ -1,15 +1,17 @@
 import { App } from "@slack/bolt";
 import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
 import type { BlockFeedbackButtonsAction } from "@slack/bolt";
+import type { BlockButtonAction } from "@slack/bolt";
 import type {
   AppMentionEvent,
   CarouselBlock,
   KnownBlock,
   MessageEvent,
+  TableBlock,
 } from "@slack/types";
 import type { WebClient } from "@slack/web-api";
 import type { ModelMessage } from "ai";
-import type { ProductCard } from "lib/ai/tools";
+import type { AccountInfo, ProductCard } from "lib/ai/tools";
 import { streamAnswer, TOOL_TITLES } from "./agent";
 
 const required = [
@@ -73,6 +75,10 @@ const app = new App({
   socketMode: true,
 });
 
+// One entry per reply in progress, so the stop button can cancel the model
+// call of its own thread.
+const activeRuns = new Map<string, AbortController>();
+
 async function respond({
   client,
   event,
@@ -90,6 +96,10 @@ async function respond({
 }) {
   const conversationId = event.thread_ts ?? event.ts;
   let stream: ReturnType<SayStreamFn> | undefined;
+
+  const run = new AbortController();
+  const runKey = `${event.channel}:${conversationId}`;
+  activeRuns.set(runKey, run);
 
   try {
     await setStatus({
@@ -109,9 +119,14 @@ async function respond({
 
     let reply = "";
     const found = new Map<string, ProductCard>();
+    let orders: AccountInfo["orders"] = [];
+    const failed: string[] = [];
 
-    for await (const part of streamAnswer({ messages, conversationId })
-      .fullStream) {
+    for await (const part of streamAnswer({
+      messages,
+      conversationId,
+      abortSignal: run.signal,
+    }).fullStream) {
       switch (part.type) {
         case "text-delta":
           reply += part.text;
@@ -135,9 +150,18 @@ async function respond({
               for (const p of part.output.products) found.set(p.handle, p);
             } else if (part.toolName === "getProduct" && part.output.product) {
               found.set(part.output.product.handle, part.output.product);
+            } else if (part.toolName === "getAccountInfo") {
+              orders = part.output.orders;
             }
           }
+          if (part.type === "tool-error") {
+            failed.push(TOOL_TITLES[part.toolName] ?? part.toolName);
+          }
           break;
+        case "abort":
+          // The user pressed stop. Slack has already closed the streamed
+          // message, so there is nothing left to stop or decorate.
+          return;
         case "error":
           throw part.error;
         default:
@@ -148,8 +172,14 @@ async function respond({
     // A search returns up to six products and the model often picks a few
     // (for example "under $60"), so show only the ones the reply names.
     const products = [...found.values()].filter((p) => reply.includes(p.title));
+    const named = orders.filter((o) => reply.includes(o.id));
     await stream.stop({
-      blocks: [...productCarousel(products), ...FEEDBACK_BLOCK],
+      blocks: [
+        ...failureNotice(failed),
+        ...productCarousel(products),
+        ...ordersTable(named),
+        ...FEEDBACK_BLOCK,
+      ],
     });
   } catch (error) {
     if (stream) {
@@ -159,6 +189,7 @@ async function respond({
     }
     throw error;
   } finally {
+    activeRuns.delete(runKey);
     // Slack's agent messaging experience keeps the status until the app
     // clears it; the older assistant experience cleared it on the reply.
     await setStatus("").catch((error) =>
@@ -183,6 +214,7 @@ app.event(
     client: WebClient;
   }) => {
     const text = stripMention(event.text ?? "");
+    await titleThread(client, event, text);
     await respond({ client, event, text, sayStream, setStatus, say });
   },
 );
@@ -210,7 +242,54 @@ app.event(
     if (event.channel_type !== "im" || event.bot_id) return;
 
     const text = stripMention(event.text ?? "");
+    await titleThread(client, event, text);
     await respond({ client, event, text, sayStream, setStatus, say });
+  },
+);
+
+// Slack sends this when the user presses the stop button. Slack shows that
+// button only to apps that subscribe to the event.
+app.event("agent_session_stopped", async ({ event }) => {
+  const { channel, thread_ts } = event as unknown as {
+    channel: string;
+    thread_ts: string;
+  };
+  activeRuns.get(`${channel}:${thread_ts}`)?.abort();
+});
+
+// A click on a product card's button is a new turn in the same thread.
+app.action<BlockButtonAction>(
+  "product_details",
+  async ({ ack, action, body, client, context, say }) => {
+    await ack();
+    const channel = body.channel?.id;
+    const thread_ts = body.message?.thread_ts ?? body.message?.ts;
+    if (!channel || !thread_ts || !action.value) return;
+
+    // Bolt gives sayStream and setStatus to event listeners only.
+    const sayStream: SayStreamFn = (args) =>
+      client.chatStream({
+        channel,
+        thread_ts,
+        recipient_team_id: context.teamId ?? context.enterpriseId,
+        recipient_user_id: body.user.id,
+        ...args,
+      });
+    const setStatus: SetStatusFn = (status) =>
+      client.assistant.threads.setStatus({
+        channel_id: channel,
+        thread_ts,
+        ...(typeof status === "string" ? { status } : status),
+      });
+
+    await respond({
+      client,
+      event: { channel, ts: action.action_ts, thread_ts, user: body.user.id },
+      text: `Tell me more about the ${action.value}.`,
+      sayStream,
+      setStatus,
+      say,
+    });
   },
 );
 
@@ -252,9 +331,61 @@ function productCarousel(products: ProductCard[]): CarouselBlock[] {
         title: { type: "mrkdwn", text: p.title },
         subtitle: { type: "mrkdwn", text: `$${p.price}` },
         body: { type: "mrkdwn", text: p.description.slice(0, 200) },
+        actions: [
+          {
+            type: "button",
+            action_id: "product_details",
+            text: { type: "plain_text", text: "Tell me more" },
+            value: p.title,
+          },
+        ],
       })),
     },
   ];
+}
+
+function ordersTable(orders: AccountInfo["orders"]): TableBlock[] {
+  if (orders.length === 0) return [];
+  const row = (...cells: string[]) =>
+    cells.map((text) => ({ type: "raw_text" as const, text }));
+  return [
+    {
+      type: "table",
+      column_settings: [{}, {}, { align: "right" }],
+      rows: [
+        row("Order", "Status", "Total"),
+        ...orders.map((o) => row(o.id, o.status, `$${o.total}`)),
+      ],
+    },
+  ];
+}
+
+// Slack accepts its red "alert" block only in modals, so a failed tool gets a
+// plain section. The model may word a failure softly; this line comes from
+// the tool error itself.
+function failureNotice(failed: string[]): KnownBlock[] {
+  if (failed.length === 0) return [];
+  return [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `⚠️ *Failed:* ${failed.join(", ")}. The team has been notified.`,
+      },
+    },
+  ];
+}
+
+// The title is the label of the thread in Slack's list of agent chats.
+async function titleThread(
+  client: WebClient,
+  event: { channel: string; ts: string; thread_ts?: string },
+  text: string,
+) {
+  if (event.thread_ts || !text) return;
+  await client.assistant.threads
+    .setTitle({ channel_id: event.channel, thread_ts: event.ts, title: text })
+    .catch((error) => console.warn("setTitle failed", error));
 }
 
 // Mentions arrive as "<@U0123> show me the apparel collection" - strip the
@@ -292,7 +423,7 @@ async function loadThread({
     .filter((m) => m.text)
     .map((m) => ({
       role: m.bot_id ? "assistant" : "user",
-      content: m.bot_id ? m.text! : stripMention(m.text!),
+      content: m.bot_id ? replyText(m) : stripMention(m.text!),
     }));
 
   const hasCurrentMessage = (replies ?? []).some((m) => m.ts === event.ts);
@@ -301,6 +432,30 @@ async function loadThread({
   }
 
   return history;
+}
+
+// A bot message's `text` also holds Slack's plain-text fallback for the task
+// timeline, the cards, and the footer. The model copies that pattern into new
+// replies when it sees it in the history, so replay only the streamed text.
+function replyText(message: { text?: string; blocks?: unknown[] }): string {
+  const flatten = (node: unknown): string => {
+    if (typeof node !== "object" || node === null) return "";
+    const { type, text, elements } = node as {
+      type?: string;
+      text?: unknown;
+      elements?: unknown[];
+    };
+    if (typeof text === "string") return text;
+    const separator =
+      type === "rich_text" || type === "rich_text_list" ? "\n" : "";
+    return (elements ?? []).map(flatten).join(separator);
+  };
+
+  const streamed = (message.blocks ?? [])
+    .filter((b) => (b as { type?: string }).type === "rich_text")
+    .map(flatten)
+    .join("\n");
+  return streamed || message.text!;
 }
 
 await app.start();

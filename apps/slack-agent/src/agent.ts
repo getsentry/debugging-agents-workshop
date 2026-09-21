@@ -9,8 +9,8 @@ import { DEMO_USER } from "lib/demo-user";
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
 
 // Same guidance as the storefront's chat route, adapted for Slack: app.ts
-// adds a card for each product whose exact title is in the reply, and orders
-// have no cards, so the assistant spells those out itself.
+// adds a card for each product whose exact title is in the reply and a table
+// row for each order whose id is in the reply.
 const assistantInstructions =
   "You are the shopping assistant for Acme Store, answering in Slack. " +
   "Use searchProducts to find products (search with product-type keywords " +
@@ -22,7 +22,9 @@ const assistantInstructions =
   "the team has been notified; never retry it. Each product you name by " +
   "its exact title gets a card with its price and description under your " +
   "reply, so name the products in one short sentence and do not list their " +
-  "details. Orders have no cards: give each order's id, status, and total. " +
+  "details. Each order you name by its id gets a table row with its status " +
+  "and total under your reply, so name the orders and do not repeat those " +
+  "details. " +
   "Prices are in USD. " +
   "Format with standard markdown: **bold** for emphasis and short bullet " +
   "lists, never headings or tables. " +
@@ -40,9 +42,11 @@ export const TOOL_TITLES: Record<string, string> = {
 export function streamAnswer({
   messages,
   conversationId,
+  abortSignal,
 }: {
   messages: ModelMessage[];
   conversationId: string;
+  abortSignal?: AbortSignal;
 }) {
   return streamText({
     model: openrouter.chat(resolveModel()),
@@ -52,6 +56,7 @@ export function streamAnswer({
       providerOptions: PROMPT_CACHE_OPTIONS,
     },
     messages,
+    abortSignal,
     tools: createTools(DEMO_USER.id, conversationId),
     stopWhen: isStepCount(5),
     // functionId names the agent in the AI SDK's telemetry.
