@@ -80,3 +80,9 @@ Slack events over a webhook and needs a Vercel deploy, so it is not used
 in the labs. It shows what changes when a framework owns the spans: one
 version uses the Sentry SDK inside eve's OpenTelemetry pipeline, the other
 exports OTLP straight to Sentry.
+
+## License
+
+MIT. See [LICENSE](LICENSE). The storefront is built on Vercel's Next.js
+Commerce template, and its MIT license is in
+[apps/storefront/license.md](apps/storefront/license.md).
