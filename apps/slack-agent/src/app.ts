@@ -231,6 +231,11 @@ app.action<BlockFeedbackButtonsAction>(
   },
 );
 
+// Slack loads card images over the public internet, and the storefront runs
+// only on localhost, so the cards read the same files from GitHub.
+const PRODUCT_IMAGE_BASE =
+  "https://raw.githubusercontent.com/getsentry/debugging-agents-workshop/main/apps/storefront/public";
+
 function productCarousel(products: ProductCard[]): CarouselBlock[] {
   if (products.length === 0) return [];
   return [
@@ -239,6 +244,11 @@ function productCarousel(products: ProductCard[]): CarouselBlock[] {
       // Slack limits: 10 cards per carousel, 200 characters per card body.
       elements: products.slice(0, 10).map((p) => ({
         type: "card",
+        hero_image: {
+          type: "image",
+          image_url: `${PRODUCT_IMAGE_BASE}${p.image}`,
+          alt_text: p.title,
+        },
         title: { type: "mrkdwn", text: p.title },
         subtitle: { type: "mrkdwn", text: `$${p.price}` },
         body: { type: "mrkdwn", text: p.description.slice(0, 200) },
@@ -247,7 +257,7 @@ function productCarousel(products: ProductCard[]): CarouselBlock[] {
   ];
 }
 
-// Mentions arrive as "<@U0123> show me the shoes collection" - strip the
+// Mentions arrive as "<@U0123> show me the apparel collection" - strip the
 // leading mention so the model sees a plain question.
 function stripMention(text: string): string {
   return text.replace(/^\s*<@[^>]+>\s*/, "").trim();

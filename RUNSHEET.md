@@ -8,7 +8,7 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 ## Lab 0. Setup (before the day, 15 minutes, self-serve)
 
 - **Outcome.** The storefront runs locally, its database on Neon is seeded,
-  and the chat answers "What do you have in the shoes collection?" on the
+  and the chat answers "What do you have in the apparel collection?" on the
   presenter's OpenRouter key. The coding agent has the Sentry plugin or MCP.
 - **Prompt.** None. Show `scripts/setup.sh` and the three keys it asks for.
 - **Code.** `apps/storefront/.env.example`: the variable names only.

@@ -40,7 +40,7 @@ Undo the change: `git checkout -- . && git clean -fd` in `apps/storefront`.
 > Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
 > what these points need; no edge runtime config, no extra error boundaries.
 > When done, start the dev server, send one chat message that searches the
-> shoes collection, then query Sentry for the resulting trace and show me the
+> apparel collection, then query Sentry for the resulting trace and show me the
 > gen_ai spans with their token counts.
 
 What to watch while it works:

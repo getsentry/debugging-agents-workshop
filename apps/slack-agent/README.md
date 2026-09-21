@@ -22,7 +22,7 @@ work.
    `apps/storefront/.env.local`.
 6. `npm install`
 7. `npm run dev`
-8. DM the bot: "show me the shoes collection".
+8. DM the bot: "show me the apparel collection".
 
 ## What the agent does in Slack
 

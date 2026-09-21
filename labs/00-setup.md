@@ -58,7 +58,7 @@ npm run dev
 ```
 
 Open <http://localhost:3000>, open the chat panel, and ask
-"What do you have in the shoes collection?". A reply with product cards means
+"What do you have in the apparel collection?". A reply with product cards means
 you are ready.
 
 ## If something fails
