@@ -169,13 +169,13 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   the new dashboard. Say why there is no per-conversation alert: the
   detector API refuses `groupBy` ("Group by Metric Alerts feature must be
   enabled"), so the top-ten table is the answer.
-- **Pitfall.** Dashboard creation needs the `org:write` CLI scope;
-  `sentry auth login` alone gives 403 on `POST dashboards/`. `sentry auth
-  refresh --scope` replaces the whole scope set, so a refresh with only
-  `org:write` leaves `sentry issue` on 403. Setup passes the login default
-  plus `org:write` in one comma-separated `--scope`. Also check `sentry auth
-  status`: a 403 on every project command with the right scopes means the
-  CLI is logged in as an account that is not a member of the org.
+- **Pitfall.** A 403 from the CLI is almost always the account, not the
+  scopes. The `sentry auth login` default scope set covers every lab
+  (`event:write` for Seer, `alerts:write` for the detectors, `org:read` for
+  dashboards). Check `sentry auth status`: a 403 on every command means the
+  CLI is logged in as an account that is not a member of the org. Do not
+  pass `--scope` to `sentry auth refresh` to fix it; that replaces the whole
+  scope set with what you pass.
 - **Takeaway.** Start from the path that costs money, not the metric the
   tool offers. Alerts and dashboards are prompts too. The attribute names
   are in the trace.

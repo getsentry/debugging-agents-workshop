@@ -30,7 +30,7 @@ your organization name.
 
 - Node 22 or newer: `node --version`
 - git
-- The `sentry` CLI: `curl https://cli.sentry.dev/install -fsS | bash`, then `sentry auth login` and `sentry auth refresh --scope org:read,org:write,project:read,project:write,event:read,event:write,member:read,team:read,alerts:read,alerts:write` (`--scope` replaces the whole scope set, so this is the login default plus `org:write`; lab 3 needs `event:write` for Seer and lab 6 needs `org:write` for dashboards)
+- The `sentry` CLI: `curl https://cli.sentry.dev/install -fsS | bash`, then `sentry auth login`. Pick the account that is a member of your Sentry org; `sentry auth status` shows which one is logged in.
 
 ## 4. Clone and run the setup script
 
