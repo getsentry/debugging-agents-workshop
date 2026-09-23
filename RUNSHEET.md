@@ -54,7 +54,17 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 
 - **Outcome.** The agent finds the new issue, names the failing span and the
   cause from the trace, and applies a fix that keeps the error visible as a
-  handled tool error with the order id. The rerun trace is green.
+  handled tool error with the order id. The rerun trace is green. Then it
+  triages the issue: assigned, Seer analysis compared, resolved with the fix
+  commit.
+- **Mechanism.** Say the names out loud once. MCP: `search_issues`,
+  `get_trace_details`, `get_sentry_resource` for the replay,
+  `analyze_issue_with_seer`, `update_issue`; the `sentry-debug-issue` skill
+  is the script the agent follows. CLI: `sentry issue list`, `view --spans
+  all`, `explain`, `resolve`. Seer refuses a project with no connected
+  repository, so link the fork first or skip the Seer comparison. The
+  point: debugging is tool calls, and they
+  run from any agent and from CI.
 - **Prompt.** In the chat: "Show me my recent orders", then "Refund order
   1029" (1029 has no payment row; 1036 and 1042 refund fine). Then the two
   lab 3 prompts: diagnose without changing code, then apply the fix.
@@ -142,7 +152,15 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   10374603 (refund), 10374604 (failure rate), 10374605 (slow turns, p95 >
   15 s), 10374606 (input tokens per hour, anomaly), dashboard 10117079 ("Storefront agent: critical paths", from `scripts/dashboards/agent-critical-paths.mjs`). Every detector was
   accepted on the first POST once the payload copied an existing one.
-- **Prompt.** The two lab 6 prompts, alert first, dashboard second.
+- **Prompt.** The two lab 6 prompts, alert first, dashboard second. While
+  the room waits for the alert email, the Step 5 triage prompt on the issue
+  the alert opened.
+- **Mechanism.** Alerts: the `sentry-create-alert` skill over the workflow
+  engine API; `sentry alert metrics list` shows the result. Dashboard:
+  `sentry dashboard create`. Triage: the lab 3 MCP tools again, started by
+  an alert. Name the automated version: a webhook action on the workflow, or
+  a scheduled agent over `sentry issue list --query "is:unresolved
+  firstSeen:-1h"`.
 - **Code.** The detector and workflow payloads the agent sends (Sentry's
   workflow engine, not the legacy alert-rules API) and the dashboard JSON
   the `sentry` CLI posts. Reference dashboards live in
@@ -152,8 +170,12 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   detector API refuses `groupBy` ("Group by Metric Alerts feature must be
   enabled"), so the top-ten table is the answer.
 - **Pitfall.** Dashboard creation needs the `org:write` CLI scope;
-  `sentry auth login` alone gives 403 on `POST dashboards/`. Setup says
-  `sentry auth refresh --scope org:write`.
+  `sentry auth login` alone gives 403 on `POST dashboards/`. `sentry auth
+  refresh --scope` replaces the whole scope set, so a refresh with only
+  `org:write` leaves `sentry issue` on 403. Setup passes the login default
+  plus `org:write` in one comma-separated `--scope`. Also check `sentry auth
+  status`: a 403 on every project command with the right scopes means the
+  CLI is logged in as an account that is not a member of the org.
 - **Takeaway.** Start from the path that costs money, not the metric the
   tool offers. Alerts and dashboards are prompts too. The attribute names
   are in the trace.

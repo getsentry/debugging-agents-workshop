@@ -36,6 +36,19 @@ The cause: the payments table only has rows for orders placed after the June
 2026 payments launch. Older orders have nothing to refund against, and the
 tool throws instead of telling the model so.
 
+### What did the work
+
+Your agent used Sentry's MCP server, with the `sentry-debug-issue` skill as
+its guide when it has the plugin: `search_issues` found the issue,
+`get_trace_details` pulled the span tree, and `get_sentry_resource` fetched
+the replay. Ask it to list the Sentry tools it called and you see these
+names.
+
+The `sentry` CLI shows the same issue from a terminal, and works in CI:
+
+    sentry issue list --query "is:unresolved" <org>/<project>
+    sentry issue view --spans all <ISSUE-ID>
+
 ## Step 3. Decide the fix, then apply it
 
 There are two fixes, and the trace tells you which one is right:
@@ -50,11 +63,34 @@ For a shop, the first is correct. Ask your agent:
 > as a handled tool error with the order id as an attribute. Then rerun the
 > refund in the chat and show me the new trace.
 
+## Step 4. Triage it
+
+The fix in the repo is half of the job. The issue in Sentry needs an owner,
+a root cause on record, and a resolution tied to the fix. Ask your agent:
+
+> Triage the refund issue: assign it to me, run Seer on it and compare its
+> root cause with yours, then resolve it and reference it in the fix commit
+> so Sentry links the two.
+
+Watch for two MCP calls: `analyze_issue_with_seer` for the root cause and
+`update_issue` for the assignee and the status. From a terminal, the same
+two are:
+
+    sentry issue explain <ISSUE-ID>
+    sentry issue resolve <ISSUE-ID>
+
+A commit message that contains `Fixes <ISSUE-ID>` does the last step on its
+own when the release that contains it goes out.
+
+Seer only runs on a project with a connected repository. If it answers
+"requires repositories to be connected", link your fork under Project
+Settings > Source Code, or skip the Seer comparison and keep the rest.
+
 ## Checkpoint
 
 The new trace has the same tool span, now without an error, and the model's
-reply names the reason. The issue from Step 1 can be resolved. Ask the agent
-to resolve it and link the fix commit.
+reply names the reason. The issue from Step 1 is resolved, assigned to you,
+and shows the Seer analysis and the fix commit.
 
 ## What you learned
 
@@ -63,3 +99,5 @@ to resolve it and link the fix commit.
   reproducing.
 - Tool errors that the model recovers from still deserve to be recorded.
   Silent recovery is how agents hide failures.
+- Debugging is tool calls. The MCP tools and CLI commands that found and
+  triaged this issue run from any coding agent, and from CI.

@@ -34,7 +34,8 @@ Ask your coding agent:
 > 5 minutes. Look at an existing detector in the org for the payload shape
 > first. Show me both alerts and the query each one uses.
 
-The Sentry skills use the workflow engine API for this. The legacy
+The `sentry-create-alert` skill does this through Sentry's workflow engine
+API: one detector per condition and one workflow for the email. The legacy
 alert-rules endpoint fails on this org, and the detector payload needs
 values no error message tells you (`events_analytics_platform`,
 `trace_item_span`, the 75/50/0 condition codes), which is why the prompt
@@ -47,6 +48,10 @@ If there is time, add the third: "an anomaly alert on input tokens per
 hour". The agent has to know `detectionType: dynamic` and the
 `anomaly_detection` condition shape; the presenter's copy is in
 `scripts/alerts/storefront-critical-paths.json`.
+
+List what the agent created from a terminal:
+
+    sentry alert metrics list <org>
 
 ## Step 3. One dashboard by CLI
 
@@ -76,14 +81,33 @@ failures, and model latency. Add `--push` to create it through the CLI.
 - PR reviewer: the cache hit rate per release widget, with the Lab 5
   regression visible as a drop between two releases.
 
+## Step 5. The alert fired. Now what
+
+An alert starts a triage loop. The refund alert points at an issue. Hand it
+to your agent while you wait for the email:
+
+> The refund alert fired. Open the issue it points to, tell me how many
+> users hit it and in which release, get Seer's root cause, and if it is
+> the Lab 3 bug again, assign it to me and link the fix. Otherwise tell me
+> what is new.
+
+This is Lab 3 again, started by an alert instead of a person:
+`search_issues`, `get_trace_details`, `analyze_issue_with_seer`,
+`update_issue`. Take the person out and the same loop is an automated
+triage workflow: the alert's workflow can call a webhook, and a scheduled
+coding agent can run this prompt over
+`sentry issue list --query "is:unresolved firstSeen:-1h"`.
+
 ## Checkpoint
 
 Trigger the refund failure four times in ten minutes. The alert fires on
 more than 3 failures. The alert email arrives a few minutes later. Paste
-the alert link in the workshop channel.
+the alert link in the workshop channel, then run Step 5 on it.
 
 ## What you learned
 
 - Start from the path that costs money, not from the metric the tool offers.
 - Alerts and dashboards are prompts too. The agent needs the attribute names,
   and the trace has them.
+- An alert opens a triage loop. The agent that debugged Lab 3 runs that loop
+  from the alert, and can run it from a schedule.

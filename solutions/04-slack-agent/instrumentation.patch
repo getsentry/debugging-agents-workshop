@@ -1,5 +1,5 @@
 diff --git a/apps/slack-agent/.env.example b/apps/slack-agent/.env.example
-index 9e69a32..6a2175c 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/.env.example
 +++ b/apps/slack-agent/.env.example
 @@ -14,3 +14,10 @@ DATABASE_URL=
@@ -14,7 +14,7 @@ index 9e69a32..6a2175c 100644
 +# Optional. Read automatically by the SDK; not passed to Sentry.init.
 +SENTRY_RELEASE=
 diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
-index d1eb232..6006d4a 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/README.md
 +++ b/apps/slack-agent/README.md
 @@ -43,4 +43,12 @@ app created from an older manifest must have its manifest replaced on the App
@@ -32,14 +32,14 @@ index d1eb232..6006d4a 100644
 +as `db.query` spans. The Sentry user is the Slack user who sent the message.
 +Errors go to Sentry as issues.
 diff --git a/apps/slack-agent/package-lock.json b/apps/slack-agent/package-lock.json
-index d4fa987..3e333f9 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/package-lock.json
 +++ b/apps/slack-agent/package-lock.json
 @@ -7,6 +7,7 @@
        "name": "slack-agent",
        "dependencies": {
          "@openrouter/ai-sdk-provider": "3.0.0",
-+        "@sentry/node": "11.0.0-rc.0",
++        "@sentry/node": "11.0.0",
          "@slack/bolt": "^4.4.0",
          "ai": "7.0.64",
          "dotenv": "17.4.2",
@@ -240,9 +240,9 @@ index d4fa987..3e333f9 100644
 +      }
 +    },
 +    "node_modules/@babel/parser": {
-+      "version": "7.29.8",
-+      "resolved": "https://sfw.security.sentry.io/npm/@babel/parser/-/parser-7.29.8.tgz",
-+      "integrity": "sha512-E8lTAYNB1KW+FH+VGJuZM1ioAx2E6oVlvQFRrf5P8ZZmsiJXYAD9vTFV7yyEURNzgh1dFqMZuO6tUwcARbqFCA==",
++      "version": "7.29.9",
++      "resolved": "https://sfw.security.sentry.io/npm/@babel/parser/-/parser-7.29.9.tgz",
++      "integrity": "sha512-CjXrNHTnvqBVqHgdBysY3vk2T8tpJHb5/RMeHJBTyVa9xgugCB0CJTx/3oO8RV2QRQP391RWpB7D6hLjm8V9uA==",
 +      "license": "MIT",
 +      "dependencies": {
 +        "@babel/types": "^7.29.8"
@@ -300,10 +300,52 @@ index d4fa987..3e333f9 100644
        }
      },
      "node_modules/@esbuild/aix-ppc64": {
-@@ -514,6 +739,51 @@
+@@ -480,51 +705,555 @@
          "node": ">=18"
        }
      },
+-    "node_modules/@esbuild/win32-ia32": {
+-      "version": "0.28.2",
+-      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-ia32/-/win32-ia32-0.28.2.tgz",
+-      "integrity": "sha512-YmJbfTlvU7Sdn9BB+4PRES4oB6pxgS37MAONj+hBr/cpXS1aBPKXxNnDbu+QCWPj0o9dgyxeq79g6c5P8KeuYA==",
+-      "cpu": [
+-        "ia32"
+-      ],
+-      "dev": true,
++    "node_modules/@esbuild/win32-ia32": {
++      "version": "0.28.2",
++      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-ia32/-/win32-ia32-0.28.2.tgz",
++      "integrity": "sha512-YmJbfTlvU7Sdn9BB+4PRES4oB6pxgS37MAONj+hBr/cpXS1aBPKXxNnDbu+QCWPj0o9dgyxeq79g6c5P8KeuYA==",
++      "cpu": [
++        "ia32"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": ">=18"
++      }
++    },
++    "node_modules/@esbuild/win32-x64": {
++      "version": "0.28.2",
++      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-x64/-/win32-x64-0.28.2.tgz",
++      "integrity": "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": ">=18"
++      }
++    },
 +    "node_modules/@jridgewell/gen-mapping": {
 +      "version": "0.3.13",
 +      "resolved": "https://sfw.security.sentry.io/npm/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz",
@@ -349,13 +391,19 @@ index d4fa987..3e333f9 100644
 +        "@jridgewell/sourcemap-codec": "^1.4.14"
 +      }
 +    },
-     "node_modules/@openrouter/ai-sdk-provider": {
-       "version": "3.0.0",
-       "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
-@@ -527,6 +797,127 @@
-         "zod": "^3.25.76 || ^4.1.8"
-       }
-     },
++    "node_modules/@openrouter/ai-sdk-provider": {
++      "version": "3.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
++      "integrity": "sha512-m9XTSWoODH2RM5OsZpaGiN7QRR8cdP5paBWq699Tu3JVmGPBKT8xF8XwV0ZBVVsjikD/JgWfak4VSsTR4wAVbg==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=22"
++      },
++      "peerDependencies": {
++        "ai": "^7.0.0",
++        "zod": "^3.25.76 || ^4.1.8"
++      }
++    },
 +    "node_modules/@opentelemetry/api": {
 +      "version": "1.9.1",
 +      "resolved": "https://sfw.security.sentry.io/npm/@opentelemetry/api/-/api-1.9.1.tgz",
@@ -365,17 +413,355 @@ index d4fa987..3e333f9 100644
 +        "node": ">=8.0.0"
 +      }
 +    },
++    "node_modules/@oxc-parser/binding-android-arm-eabi": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-android-arm-eabi/-/binding-android-arm-eabi-0.143.0.tgz",
++      "integrity": "sha512-n9uozULWflPqBtdmI8lAabLqGKNgLVNN0ZH8HfgCwpKGNtzRzauB76jTiW/3YLkcA7N1zskpi9GdVnZuu1SAvg==",
++      "cpu": [
++        "arm"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "android"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-android-arm64": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-android-arm64/-/binding-android-arm64-0.143.0.tgz",
++      "integrity": "sha512-9BbdjHETk6O3zH/DDid9IgBtF0GlpLabNKN231uraXpRDSfY+iiZxTP5bk1Z63GBownVdhdINFIeddmMz4MzpQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "android"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-darwin-arm64": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-darwin-arm64/-/binding-darwin-arm64-0.143.0.tgz",
++      "integrity": "sha512-gh+6ecoHUy4/sUcolBl/1qPXKBbYNxFY0Pk0ujgQvINTMSftJY7o4yb8gOkDJPeZeB8+a+u7xTe6umoP8N5HFA==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-darwin-x64": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-darwin-x64/-/binding-darwin-x64-0.143.0.tgz",
++      "integrity": "sha512-qd1hl2d+lXgHv/VQ/M9qm8TrMC5T4RqDBwtOnl+1D0QMjwcz+8AaB4JSg8STgeag0GP6a6L74XEGAsrTSJWNzQ==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-freebsd-x64": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-freebsd-x64/-/binding-freebsd-x64-0.143.0.tgz",
++      "integrity": "sha512-M5XXcNa7aOqLPKTR41msfghKu2yQ4xWvCm11/gwU0JzOzHNk5sgW//rVEjJ+LO48+VDAMzXTSzurUVxIDKwozw==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-arm-gnueabihf": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-arm-gnueabihf/-/binding-linux-arm-gnueabihf-0.143.0.tgz",
++      "integrity": "sha512-T/GXusuOkPNQhCQCSBbcU/N8j0rAypuDBl1IyFK+lyYT594XsVz80clPC/OtbSSpBGyJxj8uYEfctxVuxVYoww==",
++      "cpu": [
++        "arm"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-arm-musleabihf": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-arm-musleabihf/-/binding-linux-arm-musleabihf-0.143.0.tgz",
++      "integrity": "sha512-oKu4RcBlXSqo3OC62dp6YTnQaZIurNDpCX3BnAM3+bJxt7s8J2TJKMnC0UYer1qhlRaDCg6wkTaTw+2IlsZ12w==",
++      "cpu": [
++        "arm"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-arm64-gnu": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-0.143.0.tgz",
++      "integrity": "sha512-WJBbD186AZmMGaSIhlktC+rPl8L3peCTXAh88Ih9uEvK0en2mPojGyCGYiL6mHtV1RPV3JyfJW5t6n5hh0lXhA==",
++      "cpu": [
++        "arm64"
++      ],
++      "libc": [
++        "glibc"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-arm64-musl": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-arm64-musl/-/binding-linux-arm64-musl-0.143.0.tgz",
++      "integrity": "sha512-t1AcYOwEzgceadT4v5e+vaCCb0AncCA3v5AyzfBAz/tMq11qzVccXKzNHtkWdjBsgvTKwRkaUF3QvT4kot8vcQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "libc": [
++        "musl"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-ppc64-gnu": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-ppc64-gnu/-/binding-linux-ppc64-gnu-0.143.0.tgz",
++      "integrity": "sha512-RsnO/NoD8376LMJq8JS8TwI0ieNaFRTuNe2GVJntQg6gwZNMENZsEbknHdVwjpOmxdGLGodcwaGSbAeRr5Bgjw==",
++      "cpu": [
++        "ppc64"
++      ],
++      "libc": [
++        "glibc"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-riscv64-gnu": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-riscv64-gnu/-/binding-linux-riscv64-gnu-0.143.0.tgz",
++      "integrity": "sha512-48fSVfR9TZi5CASZFyv0VC6z6BCoeihFsX031mAD/oSH7d9PYsPgIqza7d9mjP7Z2KTEpTFyH6SIu0Ui6R1vdg==",
++      "cpu": [
++        "riscv64"
++      ],
++      "libc": [
++        "glibc"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-riscv64-musl": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-riscv64-musl/-/binding-linux-riscv64-musl-0.143.0.tgz",
++      "integrity": "sha512-T8CpdD+SfE01DnIOD4HpVxu0ZJOfMJ/VhCvikKfaXAxkZ+9veyLM/D2hpi7Y2hFUyPmVQO3FNZHmYzV/WlVR4g==",
++      "cpu": [
++        "riscv64"
++      ],
++      "libc": [
++        "musl"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-s390x-gnu": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-s390x-gnu/-/binding-linux-s390x-gnu-0.143.0.tgz",
++      "integrity": "sha512-QLdeMsCcacenPEFsfxnBUDF1y6opyz5+fmOz9bfD5Y7fiGCMupUCuB3KTPQhNwshIG1P9fPqar9MHxuBDd4bwQ==",
++      "cpu": [
++        "s390x"
++      ],
++      "libc": [
++        "glibc"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-x64-gnu": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-x64-gnu/-/binding-linux-x64-gnu-0.143.0.tgz",
++      "integrity": "sha512-659ujfqLy6k7cuH3sbzhd8b+ztSq+i6E2E9pG78Q0BmHjAExfGIdgc8cGgMdwAozDXeZFHkJ+LXYJdWsaGdgyw==",
++      "cpu": [
++        "x64"
++      ],
++      "libc": [
++        "glibc"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-linux-x64-musl": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-linux-x64-musl/-/binding-linux-x64-musl-0.143.0.tgz",
++      "integrity": "sha512-/Mw/9j4TfZcnKphPrzOE6t4MMknXadcAAuVUlDRTF/ETWB5xOgQvOJV2Mh9We/bWxZdoxaGAdc+hy4GuYwQ2yQ==",
++      "cpu": [
++        "x64"
++      ],
++      "libc": [
++        "musl"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-openharmony-arm64": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-openharmony-arm64/-/binding-openharmony-arm64-0.143.0.tgz",
++      "integrity": "sha512-8rIKWR2BFuifbIK/1XB9wTaSdtuJ25dlE7ZQYDnEwj/2xH2vHsxnvIjHT3ZjSVuLLwGGlSslIG/fbOJ8TV8rTw==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "openharmony"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-win32-arm64-msvc": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-0.143.0.tgz",
++      "integrity": "sha512-5U9kQYMfRRI6Zq7KDxgbIP0RMnKrfn3gLepRMgJuRkPSUALTiRCk9d/uyhb4lGDjUdzwK7mBkKqhLgzBPCmLpQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-win32-ia32-msvc": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-win32-ia32-msvc/-/binding-win32-ia32-msvc-0.143.0.tgz",
++      "integrity": "sha512-25P7AaHk4R88Yv2XH4gToDVmh0cOu+bEURQU10CRrmvgabfRArSGAP5osmwUKeSUHj0VS50upbpbRWWW/m7mHA==",
++      "cpu": [
++        "ia32"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-parser/binding-win32-x64-msvc": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-parser/binding-win32-x64-msvc/-/binding-win32-x64-msvc-0.143.0.tgz",
++      "integrity": "sha512-ORMh3JE1s6V7ySicdRK7vgaDQnn5o+UHg9ct989PlWHbel8O9ARrmWXM6kZjrBMtNucxNayQ8g69G0VfWzhANw==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      }
++    },
++    "node_modules/@oxc-project/types": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@oxc-project/types/-/types-0.143.0.tgz",
++      "integrity": "sha512-u6JZdLBTLotrNC9Vd6vPssINdzcCzleKAH6EJKImQb7GtYvX5keN2dxkoK44stCc4tffE6QQRtZTXVSzsLUlWA==",
++      "license": "MIT",
++      "funding": {
++        "url": "https://github.com/sponsors/Boshen"
++      }
++    },
 +    "node_modules/@sentry/bundler-plugins": {
-+      "version": "11.0.0-rc.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@sentry/bundler-plugins/-/bundler-plugins-11.0.0-rc.0.tgz",
-+      "integrity": "sha512-mfRtTo7MNMgAghHsTzcRV5XwdpV+YqdqA4OGgOSRqLEY5H1jxfO8j+orEjUvLk8pCgR4Y1cORsXKqpVXI4nh3w==",
++      "version": "11.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/bundler-plugins/-/bundler-plugins-11.0.0.tgz",
++      "integrity": "sha512-Oe4/8CbsYrqdjTt91JFMBQza59IWUfSwPrlHGbbJT+qVCyebX2bykxv3mfa6Ty/Gmt8+gva/DI6Kjcyb9EgXBg==",
 +      "license": "MIT",
 +      "dependencies": {
 +        "@babel/core": "^7.18.5",
-+        "@sentry/core": "11.0.0-rc.0",
++        "@sentry/core": "11.0.0",
 +        "dotenv": "^17.4.2",
 +        "glob": "^13.0.6",
 +        "magic-string": "~0.30.8",
++        "oxc-parser": "^0.143.0",
 +        "sentry": "^0.44.0",
 +        "supports-color": "^8.1.1"
 +      },
@@ -384,7 +770,7 @@ index d4fa987..3e333f9 100644
 +      },
 +      "peerDependencies": {
 +        "rollup": ">=3.2.0",
-+        "webpack": ">=5.0.0"
++        "webpack": ">=5.1.0"
 +      },
 +      "peerDependenciesMeta": {
 +        "rollup": {
@@ -405,82 +791,106 @@ index d4fa987..3e333f9 100644
 +      }
 +    },
 +    "node_modules/@sentry/core": {
-+      "version": "11.0.0-rc.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@sentry/core/-/core-11.0.0-rc.0.tgz",
-+      "integrity": "sha512-6KXLKGq1YgysUIzeD0cYQH/8Tg62V+UJV1d9FVNvKb0HnRgbiO9VWCCm1wGyYSENdGPdSa9zOOnk5ZC7WxLaAw==",
-+      "license": "MIT",
++      "version": "11.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/core/-/core-11.0.0.tgz",
++      "integrity": "sha512-Sdmg21POKmNwZDz8pH/2FtilWeryh3yxhRxbfA1ph8SnX2DkXoqX6G+uXyjCSYagW2pefVklmSNeWHmUlSqioA==",
+       "license": "MIT",
+-      "optional": true,
+-      "os": [
+-        "win32"
+-      ],
 +      "dependencies": {
 +        "@sentry/conventions": "^0.23.0"
 +      },
-+      "engines": {
+       "engines": {
+-        "node": ">=18"
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-+      }
-+    },
+       }
+     },
+-    "node_modules/@esbuild/win32-x64": {
+-      "version": "0.28.2",
+-      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-x64/-/win32-x64-0.28.2.tgz",
+-      "integrity": "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g==",
+-      "cpu": [
+-        "x64"
+-      ],
+-      "dev": true,
 +    "node_modules/@sentry/node": {
-+      "version": "11.0.0-rc.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@sentry/node/-/node-11.0.0-rc.0.tgz",
-+      "integrity": "sha512-hztnJEx8Fcyp0wNJgVbrgWIy9jgkefo7A3c7Y7r7wrCwCl5gKwzzo53XYOkY2lf/rjTLaJCG8b21VjHaFldOZw==",
-+      "license": "MIT",
++      "version": "11.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/node/-/node-11.0.0.tgz",
++      "integrity": "sha512-ZHk2wYvnKPfaq05YHnva/a6EzZDLTG0EStcWnQdjSae/OxluwCfOfMqwlsKxaY8KDUkyqokTCUPqJITZpUH1Jw==",
+       "license": "MIT",
+-      "optional": true,
+-      "os": [
+-        "win32"
+-      ],
 +      "dependencies": {
 +        "@opentelemetry/api": "^1.9.1",
-+        "@sentry/bundler-plugins": "11.0.0-rc.0",
++        "@sentry/bundler-plugins": "11.0.0",
 +        "@sentry/conventions": "^0.23.0",
-+        "@sentry/core": "11.0.0-rc.0",
-+        "@sentry/opentelemetry": "11.0.0-rc.0",
-+        "@sentry/server-runtime-injection": "11.0.0-rc.0",
-+        "@sentry/server-utils": "11.0.0-rc.0"
++        "@sentry/core": "11.0.0",
++        "@sentry/opentelemetry": "11.0.0",
++        "@sentry/server-runtime-injection": "11.0.0",
++        "@sentry/server-utils": "11.0.0"
 +      },
-+      "engines": {
+       "engines": {
+-        "node": ">=18"
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-+      }
-+    },
+       }
+     },
+-    "node_modules/@openrouter/ai-sdk-provider": {
+-      "version": "3.0.0",
+-      "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
+-      "integrity": "sha512-m9XTSWoODH2RM5OsZpaGiN7QRR8cdP5paBWq699Tu3JVmGPBKT8xF8XwV0ZBVVsjikD/JgWfak4VSsTR4wAVbg==",
+-      "license": "Apache-2.0",
 +    "node_modules/@sentry/opentelemetry": {
-+      "version": "11.0.0-rc.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@sentry/opentelemetry/-/opentelemetry-11.0.0-rc.0.tgz",
-+      "integrity": "sha512-28Yy+Qoo84Ckxu40f2sB/NE+J2uacVkT+rD/GnK3+ExZfW/o2nV7eotIwKUprhoHM1w8EaMQusjZAMTzHc4geQ==",
++      "version": "11.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/opentelemetry/-/opentelemetry-11.0.0.tgz",
++      "integrity": "sha512-m2EtgppTtN6MxW0dKA45aZMI/xoFZYi2I2cvTIenFGTGLfxyjk6+YCbg0Jf/wdUWoZjR0k6kBBBIbv+zpuvTOA==",
 +      "license": "MIT",
 +      "dependencies": {
 +        "@sentry/conventions": "^0.23.0",
-+        "@sentry/core": "11.0.0-rc.0"
++        "@sentry/core": "11.0.0"
 +      },
-+      "engines": {
+       "engines": {
+-        "node": ">=22"
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-+      },
-+      "peerDependencies": {
+       },
+       "peerDependencies": {
+-        "ai": "^7.0.0",
+-        "zod": "^3.25.76 || ^4.1.8"
 +        "@opentelemetry/api": "^1.9.0"
 +      }
 +    },
 +    "node_modules/@sentry/server-runtime-injection": {
-+      "version": "11.0.0-rc.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@sentry/server-runtime-injection/-/server-runtime-injection-11.0.0-rc.0.tgz",
-+      "integrity": "sha512-x8XppxyzDZxweoHlfsW0l12ghquvp79o2UNXOcXETRb+40ud+RF+YdPtnv4yvsrByXScPkNzKVdJSjxevJCcrA==",
++      "version": "11.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/server-runtime-injection/-/server-runtime-injection-11.0.0.tgz",
++      "integrity": "sha512-AE39xdGbi8WmcB9LtITuvJkp+sYxkPAR+3lRG4MYrJLVQS+YeYfn/AaZdEXOhnOagdpozsDbpEneGJn6vD8p6Q==",
 +      "license": "MIT",
 +      "dependencies": {
-+        "@sentry/core": "11.0.0-rc.0",
-+        "@sentry/server-utils": "11.0.0-rc.0"
++        "@sentry/core": "11.0.0",
++        "@sentry/server-utils": "11.0.0"
 +      },
 +      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
 +      }
 +    },
 +    "node_modules/@sentry/server-utils": {
-+      "version": "11.0.0-rc.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@sentry/server-utils/-/server-utils-11.0.0-rc.0.tgz",
-+      "integrity": "sha512-0+nsGmRdz8U+U5Cbe52FVfsBztcSY8v7u37id3lsEOktZQi8uJRQShp7BgvD8+ReXEuoVK/L2w7LxzTdtmxQig==",
++      "version": "11.0.0",
++      "resolved": "https://sfw.security.sentry.io/npm/@sentry/server-utils/-/server-utils-11.0.0.tgz",
++      "integrity": "sha512-XlKDtLoNqOhI+TgCNywan/tFy0yMRzw5+8mdp96KNHtF/YwO9s6c7qZcBG0x8+XDyC0EoNXDlBPJOMEZo5lD4Q==",
 +      "license": "MIT",
 +      "dependencies": {
 +        "@opentelemetry/api": "^1.9.1",
 +        "@sentry/conventions": "^0.23.0",
-+        "@sentry/core": "11.0.0-rc.0"
++        "@sentry/core": "11.0.0"
 +      },
 +      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-+      }
-+    },
+       }
+     },
      "node_modules/@slack/bolt": {
-       "version": "4.7.3",
-       "resolved": "https://sfw.security.sentry.io/npm/@slack/bolt/-/bolt-4.7.3.tgz",
-@@ -1177,25 +1568,6 @@
+@@ -1177,25 +1906,6 @@
          "zod": "^3.25.76 || ^4.1.8"
        }
      },
@@ -506,7 +916,7 @@ index d4fa987..3e333f9 100644
      "node_modules/asynckit": {
        "version": "0.4.0",
        "resolved": "https://sfw.security.sentry.io/npm/asynckit/-/asynckit-0.4.0.tgz",
-@@ -1214,6 +1586,27 @@
+@@ -1214,6 +1924,27 @@
          "proxy-from-env": "^2.1.0"
        }
      },
@@ -534,7 +944,7 @@ index d4fa987..3e333f9 100644
      "node_modules/body-parser": {
        "version": "2.3.0",
        "resolved": "https://sfw.security.sentry.io/npm/body-parser/-/body-parser-2.3.0.tgz",
-@@ -1251,6 +1644,51 @@
+@@ -1251,6 +1982,51 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -586,7 +996,7 @@ index d4fa987..3e333f9 100644
      "node_modules/buffer-equal-constant-time": {
        "version": "1.0.1",
        "resolved": "https://sfw.security.sentry.io/npm/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz",
-@@ -1295,6 +1733,26 @@
+@@ -1295,6 +2071,26 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -613,7 +1023,7 @@ index d4fa987..3e333f9 100644
      "node_modules/combined-stream": {
        "version": "1.0.8",
        "resolved": "https://sfw.security.sentry.io/npm/combined-stream/-/combined-stream-1.0.8.tgz",
-@@ -1329,6 +1787,12 @@
+@@ -1329,6 +2125,12 @@
          "node": ">= 0.6"
        }
      },
@@ -626,20 +1036,20 @@ index d4fa987..3e333f9 100644
      "node_modules/cookie": {
        "version": "0.7.2",
        "resolved": "https://sfw.security.sentry.io/npm/cookie/-/cookie-0.7.2.tgz",
-@@ -1548,6 +2012,12 @@
+@@ -1548,6 +2350,12 @@
        "integrity": "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==",
        "license": "MIT"
      },
 +    "node_modules/electron-to-chromium": {
-+      "version": "1.5.430",
-+      "resolved": "https://sfw.security.sentry.io/npm/electron-to-chromium/-/electron-to-chromium-1.5.430.tgz",
-+      "integrity": "sha512-e1QEj72Y4zd8RlNZVmoTg+iCOSVwpk05IOiiQwdrkwCSVlZfPthevErhE+nckGd2YbsXfp1SkisznhGVIXP2NQ==",
++      "version": "1.5.438",
++      "resolved": "https://sfw.security.sentry.io/npm/electron-to-chromium/-/electron-to-chromium-1.5.438.tgz",
++      "integrity": "sha512-AN9xMU1hJiT65LkCUPL1DZm5TCbOPb2Qsm5pYwFLEXp6/qj9SdT4yMiqs7Qqstwvkn1zF7l36SRGt+s6XcJ0FA==",
 +      "license": "ISC"
 +    },
      "node_modules/encodeurl": {
        "version": "2.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/encodeurl/-/encodeurl-2.0.0.tgz",
-@@ -1644,6 +2114,15 @@
+@@ -1644,6 +2452,15 @@
          "@esbuild/win32-x64": "0.28.2"
        }
      },
@@ -655,7 +1065,7 @@ index d4fa987..3e333f9 100644
      "node_modules/escape-html": {
        "version": "1.0.3",
        "resolved": "https://sfw.security.sentry.io/npm/escape-html/-/escape-html-1.0.3.tgz",
-@@ -1837,6 +2316,15 @@
+@@ -1837,6 +2654,15 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -671,7 +1081,7 @@ index d4fa987..3e333f9 100644
      "node_modules/get-intrinsic": {
        "version": "1.3.0",
        "resolved": "https://sfw.security.sentry.io/npm/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
-@@ -1874,6 +2362,23 @@
+@@ -1874,6 +2700,23 @@
          "node": ">= 0.4"
        }
      },
@@ -695,7 +1105,7 @@ index d4fa987..3e333f9 100644
      "node_modules/gopd": {
        "version": "1.2.0",
        "resolved": "https://sfw.security.sentry.io/npm/gopd/-/gopd-1.2.0.tgz",
-@@ -1886,6 +2391,15 @@
+@@ -1886,6 +2729,15 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -711,7 +1121,7 @@ index d4fa987..3e333f9 100644
      "node_modules/has-symbols": {
        "version": "1.1.0",
        "resolved": "https://sfw.security.sentry.io/npm/has-symbols/-/has-symbols-1.1.0.tgz",
-@@ -2013,12 +2527,42 @@
+@@ -2013,12 +2865,42 @@
          "url": "https://github.com/sponsors/sindresorhus"
        }
      },
@@ -754,7 +1164,7 @@ index d4fa987..3e333f9 100644
      "node_modules/jsonwebtoken": {
        "version": "9.0.3",
        "resolved": "https://sfw.security.sentry.io/npm/jsonwebtoken/-/jsonwebtoken-9.0.3.tgz",
-@@ -2041,6 +2585,18 @@
+@@ -2041,6 +2923,18 @@
          "npm": ">=6"
        }
      },
@@ -773,7 +1183,7 @@ index d4fa987..3e333f9 100644
      "node_modules/jwa": {
        "version": "2.0.1",
        "resolved": "https://sfw.security.sentry.io/npm/jwa/-/jwa-2.0.1.tgz",
-@@ -2104,6 +2660,24 @@
+@@ -2104,6 +2998,24 @@
        "integrity": "sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==",
        "license": "MIT"
      },
@@ -798,7 +1208,7 @@ index d4fa987..3e333f9 100644
      "node_modules/math-intrinsics": {
        "version": "1.1.0",
        "resolved": "https://sfw.security.sentry.io/npm/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
-@@ -2163,6 +2737,30 @@
+@@ -2163,6 +3075,30 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -829,14 +1239,14 @@ index d4fa987..3e333f9 100644
      "node_modules/ms": {
        "version": "2.1.3",
        "resolved": "https://sfw.security.sentry.io/npm/ms/-/ms-2.1.3.tgz",
-@@ -2198,6 +2796,15 @@
+@@ -2198,6 +3134,15 @@
          "url": "https://opencollective.com/express"
        }
      },
 +    "node_modules/node-releases": {
-+      "version": "2.0.56",
-+      "resolved": "https://sfw.security.sentry.io/npm/node-releases/-/node-releases-2.0.56.tgz",
-+      "integrity": "sha512-x0InOIyzgdk+eyaWaRJFH5snEtiImgBgblZ2CyPrLmqqcuMQkEvcDPHbzqbD8eDsSeJbVOjn+crzyzHaM4D+/A==",
++      "version": "2.0.57",
++      "resolved": "https://sfw.security.sentry.io/npm/node-releases/-/node-releases-2.0.57.tgz",
++      "integrity": "sha512-kQK9LGGFiHtrWiNhZtA7Qbw17AQz+dmsEKODRIVTXA9+e5MS/2gZEBhYJt13GrAz5/IOZKddH/0Z3TP/Zgo+yw==",
 +      "license": "MIT",
 +      "engines": {
 +        "node": ">=18"
@@ -845,7 +1255,50 @@ index d4fa987..3e333f9 100644
      "node_modules/object-inspect": {
        "version": "1.13.4",
        "resolved": "https://sfw.security.sentry.io/npm/object-inspect/-/object-inspect-1.13.4.tgz",
-@@ -2296,6 +2903,31 @@
+@@ -2231,6 +3176,42 @@
+         "wrappy": "1"
+       }
+     },
++    "node_modules/oxc-parser": {
++      "version": "0.143.0",
++      "resolved": "https://sfw.security.sentry.io/npm/oxc-parser/-/oxc-parser-0.143.0.tgz",
++      "integrity": "sha512-ov0NzaDCOInknS7mP1cwKdJERt3utPW8ldjtdUXQ8Ty0GEFD08wk422vCUN0d7pST6kqtV7dxoI9w1Zi0l/9TA==",
++      "license": "MIT",
++      "dependencies": {
++        "@oxc-project/types": "^0.143.0"
++      },
++      "engines": {
++        "node": "^20.19.0 || >=22.12.0"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/Boshen"
++      },
++      "optionalDependencies": {
++        "@oxc-parser/binding-android-arm-eabi": "0.143.0",
++        "@oxc-parser/binding-android-arm64": "0.143.0",
++        "@oxc-parser/binding-darwin-arm64": "0.143.0",
++        "@oxc-parser/binding-darwin-x64": "0.143.0",
++        "@oxc-parser/binding-freebsd-x64": "0.143.0",
++        "@oxc-parser/binding-linux-arm-gnueabihf": "0.143.0",
++        "@oxc-parser/binding-linux-arm-musleabihf": "0.143.0",
++        "@oxc-parser/binding-linux-arm64-gnu": "0.143.0",
++        "@oxc-parser/binding-linux-arm64-musl": "0.143.0",
++        "@oxc-parser/binding-linux-ppc64-gnu": "0.143.0",
++        "@oxc-parser/binding-linux-riscv64-gnu": "0.143.0",
++        "@oxc-parser/binding-linux-riscv64-musl": "0.143.0",
++        "@oxc-parser/binding-linux-s390x-gnu": "0.143.0",
++        "@oxc-parser/binding-linux-x64-gnu": "0.143.0",
++        "@oxc-parser/binding-linux-x64-musl": "0.143.0",
++        "@oxc-parser/binding-openharmony-arm64": "0.143.0",
++        "@oxc-parser/binding-win32-arm64-msvc": "0.143.0",
++        "@oxc-parser/binding-win32-ia32-msvc": "0.143.0",
++        "@oxc-parser/binding-win32-x64-msvc": "0.143.0"
++      }
++    },
+     "node_modules/p-finally": {
+       "version": "1.0.0",
+       "resolved": "https://sfw.security.sentry.io/npm/p-finally/-/p-finally-1.0.0.tgz",
+@@ -2296,6 +3277,31 @@
          "node": ">= 0.8"
        }
      },
@@ -866,9 +1319,9 @@ index d4fa987..3e333f9 100644
 +      }
 +    },
 +    "node_modules/path-scurry/node_modules/lru-cache": {
-+      "version": "11.5.2",
-+      "resolved": "https://sfw.security.sentry.io/npm/lru-cache/-/lru-cache-11.5.2.tgz",
-+      "integrity": "sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==",
++      "version": "11.5.3",
++      "resolved": "https://sfw.security.sentry.io/npm/lru-cache/-/lru-cache-11.5.3.tgz",
++      "integrity": "sha512-U4N8FgzmWxc8k1VH8Kr6lQg18U7Fjvby6wXHVRX/ZZ7IwWbRMgrRbP0Wrb5q5NVinryp4SQampHKdvtecItxUg==",
 +      "license": "BlueOak-1.0.0",
 +      "engines": {
 +        "node": "20 || >=22"
@@ -877,7 +1330,7 @@ index d4fa987..3e333f9 100644
      "node_modules/path-to-regexp": {
        "version": "8.4.2",
        "resolved": "https://sfw.security.sentry.io/npm/path-to-regexp/-/path-to-regexp-8.4.2.tgz",
-@@ -2395,6 +3027,12 @@
+@@ -2395,6 +3401,12 @@
          "split2": "^4.1.0"
        }
      },
@@ -890,7 +1343,7 @@ index d4fa987..3e333f9 100644
      "node_modules/postgres-array": {
        "version": "2.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/postgres-array/-/postgres-array-2.0.0.tgz",
-@@ -2556,15 +3194,12 @@
+@@ -2556,15 +3568,12 @@
        "license": "MIT"
      },
      "node_modules/semver": {
@@ -909,7 +1362,7 @@ index d4fa987..3e333f9 100644
        }
      },
      "node_modules/send": {
-@@ -2593,6 +3228,18 @@
+@@ -2593,6 +3602,18 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -928,7 +1381,7 @@ index d4fa987..3e333f9 100644
      "node_modules/serve-static": {
        "version": "2.2.1",
        "resolved": "https://sfw.security.sentry.io/npm/serve-static/-/serve-static-2.2.1.tgz",
-@@ -2708,6 +3355,21 @@
+@@ -2708,6 +3729,21 @@
          "node": ">= 0.8"
        }
      },
@@ -950,7 +1403,7 @@ index d4fa987..3e333f9 100644
      "node_modules/toidentifier": {
        "version": "1.0.1",
        "resolved": "https://sfw.security.sentry.io/npm/toidentifier/-/toidentifier-1.0.1.tgz",
-@@ -2835,6 +3497,36 @@
+@@ -2835,6 +3871,36 @@
          "node": ">= 0.8"
        }
      },
@@ -987,7 +1440,7 @@ index d4fa987..3e333f9 100644
      "node_modules/vary": {
        "version": "1.1.2",
        "resolved": "https://sfw.security.sentry.io/npm/vary/-/vary-1.1.2.tgz",
-@@ -2880,6 +3572,12 @@
+@@ -2880,6 +3946,12 @@
          "node": ">=0.4"
        }
      },
@@ -1001,19 +1454,19 @@ index d4fa987..3e333f9 100644
        "version": "4.4.3",
        "resolved": "https://sfw.security.sentry.io/npm/zod/-/zod-4.4.3.tgz",
 diff --git a/apps/slack-agent/package.json b/apps/slack-agent/package.json
-index d5c89ef..751dc93 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/package.json
 +++ b/apps/slack-agent/package.json
 @@ -12,6 +12,7 @@
    },
    "dependencies": {
      "@openrouter/ai-sdk-provider": "3.0.0",
-+    "@sentry/node": "11.0.0-rc.0",
++    "@sentry/node": "11.0.0",
      "@slack/bolt": "^4.4.0",
      "ai": "7.0.64",
      "dotenv": "17.4.2",
 diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
-index e8e0b53..214b31b 100644
+index 0000000..0000000 100644
 --- a/apps/slack-agent/src/app.ts
 +++ b/apps/slack-agent/src/app.ts
 @@ -1,3 +1,5 @@
@@ -1251,7 +1704,7 @@ index e8e0b53..214b31b 100644
  app.event(
 diff --git a/apps/slack-agent/src/instrument.ts b/apps/slack-agent/src/instrument.ts
 new file mode 100644
-index 0000000..bddd1e5
+index 0000000..0000000
 --- /dev/null
 +++ b/apps/slack-agent/src/instrument.ts
 @@ -0,0 +1,6 @@

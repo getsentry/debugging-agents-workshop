@@ -9,6 +9,17 @@ that matter for each critical path.
 Nobody instruments by hand. Every step is a prompt. The workshop teaches what
 to ask for and how to check the result.
 
+## Three ways in
+
+Your coding agent reaches Sentry in three ways. The labs use all three, and
+each lab names the one that did the work.
+
+| Way | What it is | Where the labs use it |
+|---|---|---|
+| MCP server | `mcp.sentry.dev`. Tools such as `search_issues`, `search_events`, `get_trace_details`, `analyze_issue_with_seer`, and `update_issue`. The agent calls them while it works. | Lab 3 finds the issue, pulls the trace and the replay, and triages it. Lab 6 triages the issue an alert opens. |
+| Plugin skills | `sentry-instrument`, `sentry-debug-issue`, `sentry-create-alert`, and others from <https://github.com/getsentry/plugin-claude>. Step-by-step instructions the agent follows on top of the MCP tools. Claude Code gets them from the `sentry` plugin. Other agents can copy them. | Labs 2 and 4 instrument. Lab 3 debugs. Lab 6 creates alerts. |
+| `sentry` CLI | `sentry issue list`, `view`, `explain`, `plan`, `resolve`; `sentry agent-conversation list`, `view`; `sentry alert`; `sentry dashboard create`. Runs in any terminal and in CI, and the agent can call it too. | Lab 3 shows the same issue from the terminal. Lab 6 creates the dashboard and lists the alerts. |
+
 | App | Environment | Runtime | You do |
 | --- | --- | --- | --- |
 | `apps/storefront` | Browser chat on a Next.js app | Next.js, Vercel AI SDK, Postgres on Neon | Hands-on |
