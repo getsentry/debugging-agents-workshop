@@ -1,6 +1,6 @@
 # Solution: instrument the slack-agent
 
-`instrumentation.patch` adds Sentry (`@sentry/node` 11.0.0-rc.0) to
+`instrumentation.patch` adds Sentry (`@sentry/node` 11.0.0) to
 `apps/slack-agent`, wired for agent tracing on the Vercel AI SDK call.
 
 ## Files it adds or changes
@@ -23,7 +23,7 @@
 - `README.md` — adds a Sentry section.
 - `package.json` / `package-lock.json` — adds the `@sentry/node` dependency.
 
-SDK: @sentry/node 11.0.0-rc.0
+SDK: @sentry/node 11.0.0
 
 ## Env vars it needs
 

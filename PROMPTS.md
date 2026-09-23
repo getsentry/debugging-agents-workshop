@@ -74,6 +74,14 @@ as a handled tool error with the order id as an attribute. Then rerun the
 refund in the chat and show me the new trace.
 ```
 
+### Step 4. Triage it
+
+```text
+Triage the refund issue: assign it to me, run Seer on it and compare its
+root cause with yours, then resolve it and reference it in the fix commit
+so Sentry links the two.
+```
+
 ## Lab 4. Slack agent
 
 Directory: `apps/slack-agent`. Full lab: [labs/04-slack-agent.md](labs/04-slack-agent.md).
@@ -171,5 +179,14 @@ Use the sentry CLI to create a dashboard called "Storefront agent" in my
 org with two widgets: total input and output tokens per day grouped by
 `gen_ai.request.model`, and a table of the top 10 conversations by input
 tokens with their user. Then open it.
+```
+
+### Step 5. The alert fired
+
+```text
+The refund alert fired. Open the issue it points to, tell me how many
+users hit it and in which release, get Seer's root cause, and if it is
+the Lab 3 bug again, assign it to me and link the fix. Otherwise tell me
+what is new.
 ```
 

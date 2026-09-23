@@ -1,6 +1,6 @@
 # Solution: instrument the pr-reviewer
 
-`instrumentation.patch` adds Sentry (`@sentry/node@11.0.0-rc.0`,
+`instrumentation.patch` adds Sentry (`@sentry/node@11.0.0`,
 `@flue/opentelemetry@2.0.3`) to `apps/pr-reviewer`, wired through Flue's
 OpenTelemetry adapter.
 
@@ -23,7 +23,7 @@ OpenTelemetry adapter.
 - `README.md` — adds a Sentry section.
 - `package.json` / `package-lock.json` — adds the two dependencies.
 
-SDK: @sentry/node 11.0.0-rc.0
+SDK: @sentry/node 11.0.0
 
 ## Env vars it needs
 

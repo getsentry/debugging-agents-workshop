@@ -1,6 +1,6 @@
 # Solution: instrument the storefront
 
-`instrumentation.patch` adds Sentry (`@sentry/nextjs` 11.0.0-rc.0) to
+`instrumentation.patch` adds Sentry (`@sentry/nextjs` 11.0.0) to
 `apps/storefront`, wired for agent tracing on the Vercel AI SDK route.
 
 ## Files it adds or changes
@@ -25,7 +25,7 @@
 Sentry's Node SDK auto-instruments into `db.query` spans once the server
 config is loaded.
 
-SDK: @sentry/nextjs 11.0.0-rc.0
+SDK: @sentry/nextjs 11.0.0
 
 ## Env vars it needs
 
