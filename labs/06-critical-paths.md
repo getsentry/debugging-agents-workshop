@@ -93,10 +93,9 @@ to your agent while you wait for the email:
 
 This is Lab 3 again, started by an alert instead of a person:
 `search_issues`, `get_trace_details`, `analyze_issue_with_seer`,
-`update_issue`. Take the person out and the same loop is an automated
-triage workflow: the alert's workflow can call a webhook, and a scheduled
-coding agent can run this prompt over
-`sentry issue list --query "is:unresolved firstSeen:-1h"`.
+`update_issue`. Take the person out and the same loop runs on its own. The
+alert's workflow can call a webhook, or a scheduled coding agent can run
+this prompt over `sentry issue list --query "is:unresolved firstSeen:-1h"`.
 
 ## Checkpoint
 

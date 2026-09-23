@@ -62,9 +62,8 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   `analyze_issue_with_seer`, `update_issue`; the `sentry-debug-issue` skill
   is the script the agent follows. CLI: `sentry issue list`, `view --spans
   all`, `explain`, `resolve`. Seer refuses a project with no connected
-  repository, so link the fork first or skip the Seer comparison. The
-  point: debugging is tool calls, and they
-  run from any agent and from CI.
+  repository, so link the fork first or skip the Seer comparison. Debugging
+  is tool calls, and tool calls run from any agent and from CI.
 - **Prompt.** In the chat: "Show me my recent orders", then "Refund order
   1029" (1029 has no payment row; 1036 and 1042 refund fine). Then the two
   lab 3 prompts: diagnose without changing code, then apply the fix.
@@ -172,10 +171,10 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 - **Pitfall.** A 403 from the CLI is almost always the account, not the
   scopes. The `sentry auth login` default scope set covers every lab
   (`event:write` for Seer, `alerts:write` for the detectors, `org:read` for
-  dashboards). Check `sentry auth status`: a 403 on every command means the
+  dashboards). Check `sentry auth status`. A 403 on every command means the
   CLI is logged in as an account that is not a member of the org. Do not
-  pass `--scope` to `sentry auth refresh` to fix it; that replaces the whole
-  scope set with what you pass.
+  pass `--scope` to `sentry auth refresh` to fix it. That flag replaces the
+  whole scope set with what you pass.
 - **Takeaway.** Start from the path that costs money, not the metric the
   tool offers. Alerts and dashboards are prompts too. The attribute names
   are in the trace.
