@@ -38,11 +38,11 @@ tool throws instead of telling the model so.
 
 ### What did the work
 
-Your agent used Sentry's MCP server, with the `sentry-debug-issue` skill as
-its guide when it has the plugin: `search_issues` found the issue,
+Your agent used Sentry's MCP server. With the plugin installed, the
+`sentry-debug-issue` skill was its script. `search_issues` found the issue,
 `get_trace_details` pulled the span tree, and `get_sentry_resource` fetched
-the replay. Ask it to list the Sentry tools it called and you see these
-names.
+the replay. Ask the agent to list the Sentry tools it called and these
+names come back.
 
 The `sentry` CLI shows the same issue from a terminal, and works in CI:
 
@@ -79,8 +79,8 @@ two are:
     sentry issue explain <ISSUE-ID>
     sentry issue resolve <ISSUE-ID>
 
-A commit message that contains `Fixes <ISSUE-ID>` does the last step on its
-own when the release that contains it goes out.
+A commit message with `Fixes <ISSUE-ID>` in it does the last step for you.
+Sentry resolves the issue when the release with that commit goes out.
 
 Seer only runs on a project with a connected repository. If it answers
 "requires repositories to be connected", link your fork under Project
