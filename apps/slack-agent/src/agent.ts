@@ -43,10 +43,12 @@ export function streamAnswer({
   messages,
   conversationId,
   abortSignal,
+  recordContent,
 }: {
   messages: ModelMessage[];
   conversationId: string;
   abortSignal?: AbortSignal;
+  recordContent: boolean;
 }) {
   return streamText({
     model: openrouter.chat(resolveModel()),
@@ -60,8 +62,11 @@ export function streamAnswer({
     tools: createTools(DEMO_USER.id, conversationId),
     stopWhen: isStepCount(5),
     // functionId names the agent in the AI SDK's telemetry.
+    // A per-call boolean beats the `dataCollection` default set in instrument.ts.
     telemetry: {
       functionId: "slack-shopping-assistant",
+      recordInputs: recordContent,
+      recordOutputs: recordContent,
     },
   });
 }
