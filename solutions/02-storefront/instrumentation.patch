@@ -53,12 +53,31 @@ index 0000000..0000000 100644
    });
  
    return createUIMessageStreamResponse({
+diff --git a/apps/storefront/components/assistant/account-card.tsx b/apps/storefront/components/assistant/account-card.tsx
+index 0000000..0000000 100644
+--- a/apps/storefront/components/assistant/account-card.tsx
++++ b/apps/storefront/components/assistant/account-card.tsx
+@@ -24,9 +24,12 @@ export function AccountCard({ customer, orders }: AccountInfo) {
+     <div className="w-full overflow-hidden rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black">
+       <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3 dark:border-neutral-800">
+         <div className="min-w-0">
+-          <h4 className="truncate text-sm font-medium">{customer.name}</h4>
++          <h4 data-sentry-mask className="truncate text-sm font-medium">
++            {customer.name}
++          </h4>
+           <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+-            {customer.email} · member since {customer.memberSince}
++            <span data-sentry-mask>{customer.email}</span> · member since{" "}
++            {customer.memberSince}
+           </p>
+         </div>
+         <span className="shrink-0 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white">
 diff --git a/apps/storefront/instrumentation-client.ts b/apps/storefront/instrumentation-client.ts
 new file mode 100644
 index 0000000..0000000
 --- /dev/null
 +++ b/apps/storefront/instrumentation-client.ts
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,23 @@
 +import * as Sentry from "@sentry/nextjs";
 +import { DEMO_USER } from "lib/demo-user";
 +
@@ -66,7 +85,15 @@ index 0000000..0000000
 +  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 +  tracesSampleRate: 1,
 +  replaysSessionSampleRate: 1,
-+  integrations: [Sentry.replayIntegration()],
++  integrations: [
++    // Records the page as the shopper saw it. Elements marked
++    // data-sentry-mask (the account card's name and email) stay masked.
++    Sentry.replayIntegration({
++      maskAllText: false,
++      maskAllInputs: false,
++      blockAllMedia: false,
++    }),
++  ],
 +});
 +
 +// The store has no sign-in; a real app calls setUser after the user signs in.

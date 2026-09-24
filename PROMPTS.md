@@ -30,7 +30,8 @@ on the server and in the browser, so traces, errors, and replays all carry
 it.
 - Database spans for the Postgres queries in `lib/db`.
 - Session replay in the browser, so a failed chat turn links to what the
-user saw.
+user saw. Record the page as the shopper saw it, but mask their name and
+email.
 - Full trace sampling for the workshop.
 Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
 what these points need; no edge runtime config, no extra error boundaries.
