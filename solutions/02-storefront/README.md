@@ -11,7 +11,10 @@
 - `instrumentation.ts` — loads the server config for the Node.js runtime only;
   wires `onRequestError` for Server Component and proxy errors.
 - `instrumentation-client.ts` — browser init with session replay and router
-  transition tracing.
+  transition tracing. Replay records page text, inputs, and images as the
+  shopper saw them; only elements marked `data-sentry-mask` stay masked.
+- `components/assistant/account-card.tsx` — marks the shopper's name and
+  email with `data-sentry-mask`.
 - `next.config.ts` — wraps the config with `withSentryConfig` (imported from
   `@sentry/nextjs/config`) for source map upload, skipped when
   `SENTRY_AUTH_TOKEN` is unset.
