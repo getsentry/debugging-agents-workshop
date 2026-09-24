@@ -1,3 +1,5 @@
+import "./instrument";
+import * as Sentry from "@sentry/node";
 import { App } from "@slack/bolt";
 import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
 import type { BlockFeedbackButtonsAction } from "@slack/bolt";
@@ -101,101 +103,133 @@ async function respond({
   const runKey = `${event.channel}:${conversationId}`;
   activeRuns.set(runKey, run);
 
-  try {
-    await setStatus({
-      status: "is thinking...",
-      loading_messages: LOADING_MESSAGES,
-    }).catch((error) => console.warn("setStatus failed", error));
+  // One Slack message is one trace: this span is the root, so the model and
+  // tool spans from the AI SDK's telemetry nest inside it.
+  await Sentry.startSpan(
+    {
+      name: "slack.message",
+      op: "slack.message",
+      attributes: {
+        "gen_ai.conversation.id": conversationId,
+        "slack.channel": event.channel,
+      },
+    },
+    async () => {
+      // The span has its own scope, so threads that run at the same time keep
+      // their own user and conversation. Sentry copies the conversation id
+      // from the scope to each AI span only, and groups the thread by it.
+      const scope = Sentry.getCurrentScope();
+      scope.setUser(event.user ? { id: event.user } : null);
+      scope.setConversationId(conversationId);
 
-    const messages = await loadThread({ client, event, conversationId, text });
+      try {
+        await setStatus({
+          status: "is thinking...",
+          loading_messages: LOADING_MESSAGES,
+        }).catch((error) => console.warn("setStatus failed", error));
 
-    stream = sayStream({ task_display_mode: "timeline" });
+        const messages = await loadThread({
+          client,
+          event,
+          conversationId,
+          text,
+        });
 
-    const taskStatus = {
-      "tool-call": "in_progress",
-      "tool-result": "complete",
-      "tool-error": "error",
-    } as const;
+        stream = sayStream({ task_display_mode: "timeline" });
 
-    let reply = "";
-    const found = new Map<string, ProductCard>();
-    let orders: AccountInfo["orders"] = [];
-    const failed: string[] = [];
+        const taskStatus = {
+          "tool-call": "in_progress",
+          "tool-result": "complete",
+          "tool-error": "error",
+        } as const;
 
-    for await (const part of streamAnswer({
-      messages,
-      conversationId,
-      abortSignal: run.signal,
-    }).fullStream) {
-      switch (part.type) {
-        case "text-delta":
-          reply += part.text;
-          await stream.append({ markdown_text: part.text });
-          break;
-        case "tool-call":
-        case "tool-result":
-        case "tool-error":
-          await stream.append({
-            chunks: [
-              {
-                type: "task_update",
-                id: part.toolCallId,
-                title: TOOL_TITLES[part.toolName] ?? part.toolName,
-                status: taskStatus[part.type],
-              },
-            ],
-          });
-          if (part.type === "tool-result" && !part.dynamic) {
-            if (part.toolName === "searchProducts") {
-              for (const p of part.output.products) found.set(p.handle, p);
-            } else if (part.toolName === "getProduct" && part.output.product) {
-              found.set(part.output.product.handle, part.output.product);
-            } else if (part.toolName === "getAccountInfo") {
-              orders = part.output.orders;
-            }
+        let reply = "";
+        const found = new Map<string, ProductCard>();
+        let orders: AccountInfo["orders"] = [];
+        const failed: string[] = [];
+
+        for await (const part of streamAnswer({
+          messages,
+          conversationId,
+          abortSignal: run.signal,
+        }).fullStream) {
+          switch (part.type) {
+            case "text-delta":
+              reply += part.text;
+              await stream.append({ markdown_text: part.text });
+              break;
+            case "tool-call":
+            case "tool-result":
+            case "tool-error":
+              await stream.append({
+                chunks: [
+                  {
+                    type: "task_update",
+                    id: part.toolCallId,
+                    title: TOOL_TITLES[part.toolName] ?? part.toolName,
+                    status: taskStatus[part.type],
+                  },
+                ],
+              });
+              if (part.type === "tool-result" && !part.dynamic) {
+                if (part.toolName === "searchProducts") {
+                  for (const p of part.output.products) found.set(p.handle, p);
+                } else if (
+                  part.toolName === "getProduct" &&
+                  part.output.product
+                ) {
+                  found.set(part.output.product.handle, part.output.product);
+                } else if (part.toolName === "getAccountInfo") {
+                  orders = part.output.orders;
+                }
+              }
+              if (part.type === "tool-error") {
+                failed.push(TOOL_TITLES[part.toolName] ?? part.toolName);
+              }
+              break;
+            case "abort":
+              // The user pressed stop. Slack has already closed the streamed
+              // message, so there is nothing left to stop or decorate.
+              return;
+            case "error":
+              throw part.error;
+            default:
+              break;
           }
-          if (part.type === "tool-error") {
-            failed.push(TOOL_TITLES[part.toolName] ?? part.toolName);
-          }
-          break;
-        case "abort":
-          // The user pressed stop. Slack has already closed the streamed
-          // message, so there is nothing left to stop or decorate.
-          return;
-        case "error":
-          throw part.error;
-        default:
-          break;
+        }
+
+        // A search returns up to six products and the model often picks a few
+        // (for example "under $60"), so show only the ones the reply names.
+        const products = [...found.values()].filter((p) =>
+          reply.includes(p.title),
+        );
+        const named = orders.filter((o) => reply.includes(o.id));
+        await stream.stop({
+          blocks: [
+            ...failureNotice(failed),
+            ...productCarousel(products),
+            ...ordersTable(named),
+            ...FEEDBACK_BLOCK,
+          ],
+        });
+      } catch (error) {
+        Sentry.captureException(error);
+        if (stream) {
+          await stream.stop({ markdown_text: ERROR_REPLY });
+        } else {
+          await say({ text: ERROR_REPLY, thread_ts: conversationId });
+        }
+        throw error;
+      } finally {
+        activeRuns.delete(runKey);
+        // Slack's agent messaging experience keeps the status until the app
+        // clears it; the older assistant experience cleared it on the reply.
+        await setStatus("").catch((error) =>
+          console.warn("setStatus failed", error),
+        );
       }
-    }
-
-    // A search returns up to six products and the model often picks a few
-    // (for example "under $60"), so show only the ones the reply names.
-    const products = [...found.values()].filter((p) => reply.includes(p.title));
-    const named = orders.filter((o) => reply.includes(o.id));
-    await stream.stop({
-      blocks: [
-        ...failureNotice(failed),
-        ...productCarousel(products),
-        ...ordersTable(named),
-        ...FEEDBACK_BLOCK,
-      ],
-    });
-  } catch (error) {
-    if (stream) {
-      await stream.stop({ markdown_text: ERROR_REPLY });
-    } else {
-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
-    }
-    throw error;
-  } finally {
-    activeRuns.delete(runKey);
-    // Slack's agent messaging experience keeps the status until the app
-    // clears it; the older assistant experience cleared it on the reply.
-    await setStatus("").catch((error) =>
-      console.warn("setStatus failed", error),
-    );
-  }
+    },
+  );
 }
 
 app.event(

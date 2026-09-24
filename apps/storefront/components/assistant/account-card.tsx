@@ -24,9 +24,12 @@ export function AccountCard({ customer, orders }: AccountInfo) {
     <div className="w-full overflow-hidden rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black">
       <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3 dark:border-neutral-800">
         <div className="min-w-0">
-          <h4 className="truncate text-sm font-medium">{customer.name}</h4>
+          <h4 data-sentry-mask className="truncate text-sm font-medium">
+            {customer.name}
+          </h4>
           <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-            {customer.email} · member since {customer.memberSince}
+            <span data-sentry-mask>{customer.email}</span> · member since{" "}
+            {customer.memberSince}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white">
