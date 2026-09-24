@@ -88,6 +88,7 @@ async function respond({
   sayStream,
   setStatus,
   say,
+  channelType,
 }: {
   client: WebClient;
   event: { channel: string; ts: string; thread_ts?: string; user?: string };
@@ -95,8 +96,10 @@ async function respond({
   sayStream: SayStreamFn;
   setStatus: SetStatusFn;
   say: SayFn;
+  channelType: "im" | "channel";
 }) {
   const conversationId = event.thread_ts ?? event.ts;
+  const recordContent = channelType !== "im";
   let stream: ReturnType<SayStreamFn> | undefined;
 
   const run = new AbortController();
@@ -112,6 +115,7 @@ async function respond({
       attributes: {
         "gen_ai.conversation.id": conversationId,
         "slack.channel": event.channel,
+        "slack.channel_type": channelType,
       },
     },
     async () => {
@@ -152,6 +156,7 @@ async function respond({
           messages,
           conversationId,
           abortSignal: run.signal,
+          recordContent,
         }).fullStream) {
           switch (part.type) {
             case "text-delta":
@@ -249,7 +254,17 @@ app.event(
   }) => {
     const text = stripMention(event.text ?? "");
     await titleThread(client, event, text);
-    await respond({ client, event, text, sayStream, setStatus, say });
+    // Slack sends no channel_type with app_mention, so a mention in a
+    // private channel counts as a channel here too.
+    await respond({
+      client,
+      event,
+      text,
+      sayStream,
+      setStatus,
+      say,
+      channelType: "channel",
+    });
   },
 );
 
@@ -277,7 +292,15 @@ app.event(
 
     const text = stripMention(event.text ?? "");
     await titleThread(client, event, text);
-    await respond({ client, event, text, sayStream, setStatus, say });
+    await respond({
+      client,
+      event,
+      text,
+      sayStream,
+      setStatus,
+      say,
+      channelType: "im",
+    });
   },
 );
 
@@ -323,6 +346,9 @@ app.action<BlockButtonAction>(
       sayStream,
       setStatus,
       say,
+      // Slack DM channel ids start with "D"; this action carries no
+      // channel_type, so infer it from the id the way Slack's own clients do.
+      channelType: channel.startsWith("D") ? "im" : "channel",
     });
   },
 );
