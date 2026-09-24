@@ -1,4 +1,5 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import * as Sentry from "@sentry/nextjs";
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
@@ -32,6 +33,14 @@ export async function POST(req: Request) {
   const { id, messages }: { id?: string; messages: AssistantUIMessage[] } =
     await req.json();
 
+  // Attribute this turn to the shopper and thread all turns of one chat
+  // session into a single Sentry Conversation. Must happen before the AI call
+  // so the gen_ai spans pick both up.
+  Sentry.setUser({ ...DEMO_USER });
+  if (id) {
+    Sentry.setConversationId(id);
+  }
+
   const result = streamText({
     model: openrouter.chat(resolveModel()),
     instructions: {
@@ -45,6 +54,11 @@ export async function POST(req: Request) {
     // functionId names the agent in the AI SDK's telemetry.
     telemetry: {
       functionId: "shopping-assistant",
+    },
+    // streamText resolves rather than throws when the model or the provider
+    // fails, so without this a bad key or a provider 5xx creates no issue.
+    onError: ({ error }) => {
+      Sentry.captureException(error);
     },
   });
 

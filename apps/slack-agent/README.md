@@ -43,4 +43,12 @@ app created from an older manifest must have its manifest replaced on the App
 Manifest page at api.slack.com, then be reinstalled. Slack does not let an
 app go back to the older assistant experience.
 
-Sentry is added to this app in `labs/04-slack-agent.md`.
+## Sentry
+
+Set `SENTRY_DSN` in `.env.local` (`SENTRY_ENVIRONMENT` and `SENTRY_RELEASE`
+are optional; the SDK reads them automatically). Each handled Slack message
+becomes one trace: a root `slack.message` span tagged with the Slack channel
+and the thread timestamp as the conversation id, with the model call and its
+tool calls nested inside as `gen_ai` spans, and Postgres queries from `lib/db`
+as `db.query` spans. The Sentry user is the Slack user who sent the message.
+Errors go to Sentry as issues.

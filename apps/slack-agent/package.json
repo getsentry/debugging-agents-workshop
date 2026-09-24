@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "3.0.0",
+    "@sentry/node": "11.0.0",
     "@slack/bolt": "^4.4.0",
     "ai": "7.0.64",
     "dotenv": "17.4.2",
