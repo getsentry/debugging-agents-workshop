@@ -118,7 +118,7 @@ name, the conversation id, the user, and every gen_ai and tool span with
 its token counts.
 ```
 
-### Step 3. Ship the regression
+### Step 4. Ship the regression
 
 ```text
 Compare cached input tokens per model call between the last two releases of
@@ -155,7 +155,7 @@ Find the latest trace in the pr-reviewer project. Show the lead span, the
 two subagent spans, and the total input tokens for the run.
 ```
 
-### Step 3. Ship the regression
+### Step 4. Ship the regression
 
 ```text
 Compare the last two releases of the pr-reviewer project: total input
