@@ -57,6 +57,18 @@ export function ReviewLead() {
 	});
 
 	useTool({
+		name: 'read_file',
+		description:
+			'Reads one source file from the repository so a reviewer can see the whole file, not only the diff hunks.',
+		input: v.object({ path: v.string() }),
+		async run({ data, log }) {
+			const contents = await readFile(data.path, 'utf8');
+			log.info('file loaded', { path: data.path, bytes: contents.length });
+			return contents.slice(0, 20000);
+		},
+	});
+
+	useTool({
 		name: 'post_review',
 		description: 'Publish the finished review. Call exactly once with the complete Markdown review.',
 		input: v.object({ review: v.string() }),
@@ -96,12 +108,16 @@ export function ReviewLead() {
 	return `You are the lead reviewer of a pull request. Work through these steps in order:
 
 1. Load the diff with the read_diff tool, using the file path given in the user message.
-2. Delegate two review passes: one task to correctness-reviewer, one task to style-reviewer.
+2. For every file in the diff, call read_file with the path from its \`diff --git\` header so the
+   reviewers see the whole file, not only the hunks. If a read fails, continue with the diff
+   hunks for that file.
+3. Delegate two review passes: one task to correctness-reviewer, one task to style-reviewer.
    Issue both tasks in a single batch so they run in parallel, and include the complete diff
-   text in each task message — subagents cannot see this conversation.
-3. Synthesize everything into one review: a one-line verdict, then findings ordered by
+   text and the full contents of the files you read in each task message — subagents cannot
+   see this conversation.
+4. Synthesize everything into one review: a one-line verdict, then findings ordered by
    severity (correctness before style).
-4. Publish the review with the post_review tool, exactly once.
+5. Publish the review with the post_review tool, exactly once.
 
 ${prDescription ? `PR description:\n---\n${prDescription}\n---\n\n` : ''}Finish by replying with the verdict line only.`;
 }
