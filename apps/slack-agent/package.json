@@ -3,12 +3,14 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   },
   "scripts": {
-    "dev": "tsx --env-file=.env.local src/app.ts",
+    "dev": "node --env-file=.env.local --import ./src/instrument.ts src/app.ts",
     "typecheck": "tsc --noEmit",
-    "manifest:link": "node scripts/manifest-link.mjs"
+    "test": "node --test src/analytics/store.test.ts src/analytics/blocks.test.ts",
+    "manifest:link": "node scripts/manifest-link.mjs",
+    "db:seed": "node scripts/db-seed.ts"
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "3.0.0",
@@ -16,14 +18,12 @@
     "@slack/bolt": "^4.4.0",
     "ai": "7.0.64",
     "dotenv": "17.4.2",
-    "drizzle-orm": "0.45.2",
-    "pg": "8.23.0",
+    "pg": "^8.16.3",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
-    "@types/pg": "8.23.1",
-    "tsx": "4.23.13",
+    "@types/pg": "^8.15.5",
     "typescript": "7.0.2"
   }
 }

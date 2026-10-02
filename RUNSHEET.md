@@ -78,26 +78,39 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
   three levels up. Tool errors the model recovers from still deserve a
   record, because silent recovery is how agents hide failures.
 
-## Lab 4. The same agent in Slack (10 minutes, follow-along)
+## Lab 4. A different agent in Slack (10 minutes, follow-along)
 
 - **Outcome.** One trace per Slack message: a root span with the thread
   timestamp as conversation id and the Slack user as Sentry user, the model
-  call and tool spans inside. After the regression patch, cached input
-  tokens on later turns drop from thousands to zero.
-- **Prompt.** The lab 4 prompt (no session replay, no logs; the trace is all
-  you get), then "Find the latest trace in the slack-agent project ...",
-  then "Compare cached input tokens per model call between the last two
-  releases".
-- **Code.** `src/instrument.ts`: six lines, imported first. `src/app.ts`: the
+  call and its `analytics.scan` tool spans inside, each with a `db` child
+  span for the Postgres query. A channel message records the prompt and the
+  reply; a direct message never does, but its scan spans still carry the
+  metric, the range length, and the row count. After the regression patch,
+  cached input tokens on later turns drop from thousands to zero.
+- **Prompt.** The lab 4 instrument prompt (one transaction per message,
+  content recorded only outside direct messages, one span per warehouse
+  scan), then "Find the latest trace in the slack-agent project ...", then
+  the same question asked in a channel and in a DM, then "Compare cached
+  input tokens per model call between the last two releases".
+- **Code.** `src/instrument.ts`: Sentry init plus the `dataCollection` block
+  that turns content recording off by default. `src/app.ts`: the
   `Sentry.startSpan` wrapper around one message with
-  `gen_ai.conversation.id` and `setUser`. Then the regression:
+  `gen_ai.conversation.id`, `setUser`, and the `slack.record_content`
+  attribute. `src/agent.ts`: the per-call `telemetry` override that follows
+  the same channel-vs-DM rule. `src/analytics/tools.ts`: one
+  `Sentry.startSpan` per warehouse scan. Then the regression:
   `regressions/drop-prompt-cache.patch` removes one line, the
   `providerOptions` cache breakpoint on the system prompt.
-- **Sentry UI.** The trace. Explore > Spans, query
+- **Sentry UI.** The channel trace next to the DM trace for the same
+  question: one shows the prompt, the reply, and the tool arguments; the
+  other shows only the scan spans' attributes and their `db` child spans.
+  Then Explore > Spans, query
   `gen_ai.usage.cache_read.input_tokens` grouped by release: one release
   shows 3114, the next shows 0.
 - **Takeaway.** The prompt names the unit of work. Conversation id and user
-  come from the platform. A cache regression is one attribute per release.
+  come from the platform. Content recording can follow a rule the platform
+  already gives you, such as channel type. A cache regression is one
+  attribute per release.
 
 ## Lab 5. The same agent in GitHub Actions (10 minutes, follow-along)
 

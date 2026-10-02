@@ -1,43 +1,55 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { isStepCount, streamText } from "ai";
 import type { ModelMessage } from "ai";
-import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
-import { resolveModel } from "lib/ai/models";
-import { createTools } from "lib/ai/tools";
-import { DEMO_USER } from "lib/demo-user";
+import { analyticsTools } from "./analytics/tools.ts";
+import { renderCatalog } from "./analytics/store.ts";
 
+// The API key is only read when a request is actually made (inside
+// baseConfig.headers, lazily), so constructing the client here has no side
+// effect - agent.ts stays safe to import without OPENROUTER_API_KEY set, for
+// example from the store test that only wants SYSTEM_PROMPT.
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
 
-// Same guidance as the storefront's chat route, adapted for Slack: app.ts
-// adds a card for each product whose exact title is in the reply and a table
-// row for each order whose id is in the reply.
-const assistantInstructions =
-  "You are the shopping assistant for Acme Store, answering in Slack. " +
-  "Use searchProducts to find products (search with product-type keywords " +
-  'like "hoodie" or "mug", or browse a collection), getProduct for one ' +
-  "specific product, and getAccountInfo for anything about the customer's " +
-  "account, orders, or loyalty points. Use refundOrder when the customer " +
-  "asks to refund or return an order - confirm which order first, then call " +
-  "it with the order id. If refundOrder errors, apologize briefly and say " +
-  "the team has been notified; never retry it. Each product you name by " +
-  "its exact title gets a card with its price and description under your " +
-  "reply, so name the products in one short sentence and do not list their " +
-  "details. Each order you name by its id gets a table row with its status " +
-  "and total under your reply, so name the orders and do not repeat those " +
-  "details. " +
-  "Prices are in USD. " +
-  "Format with standard markdown: **bold** for emphasis and short bullet " +
-  "lists, never headings or tables. " +
-  "Be concise and friendly.";
+const SUPPORTED_MODELS = [
+  "anthropic/claude-sonnet-5",
+  "anthropic/claude-haiku-4.5",
+  "openai/gpt-5-mini",
+  "google/gemini-2.5-flash",
+] as const;
 
-// Labels shown next to each tool's task_update chunk while it runs, so
-// Slack's task timeline reads like a sentence instead of a function name.
-export const TOOL_TITLES: Record<string, string> = {
-  searchProducts: "Searching the catalog",
-  getProduct: "Looking up the product",
-  getAccountInfo: "Checking the account",
-  refundOrder: "Processing the refund",
+function resolveModel(): string {
+  const configured = process.env.OPENROUTER_MODEL;
+  return configured && (SUPPORTED_MODELS as readonly string[]).includes(configured)
+    ? configured
+    : "anthropic/claude-sonnet-5";
+}
+
+// The breakpoint caches the tool definitions plus the system prompt; without
+// it Anthropic caches nothing.
+const PROMPT_CACHE_OPTIONS = {
+  openrouter: { cacheControl: { type: "ephemeral" } },
 };
+
+const TODAY = new Date().toISOString().slice(0, 10);
+
+// Anthropic only caches prompt prefixes of at least 1024 tokens (Sonnet 5),
+// so this prompt is written long and specific on purpose: the rules plus the
+// metric catalog and glossary below comfortably clear that floor, and stay
+// identical turn to turn so the cache actually hits.
+const RULES = `You are the product analytics assistant for the Lighthouse team, in Slack. Lighthouse is a fictional SaaS product; the numbers you report come from Lighthouse's own metrics warehouse, not from the public internet or from anything you already know.
+
+Rules for every answer:
+
+- Always call a tool before you state any number. Never guess, round from memory, or reuse a number from earlier in the conversation without a fresh tool call - the warehouse is the only source of truth, and a number you didn't just look up is not a real answer.
+- Every time you state a number, say which metric it is and the exact date range you used to get it, in the sentence itself - for example "signups from 2026-09-01 to 2026-09-07 were 1,412", not just "signups were 1,412". A number without its metric and range is not useful to someone reading the thread later.
+- When someone asks how a metric "did" over a period - better, worse, up, down, flat - always compare it with the immediately preceding period of the same length using compare_periods, rather than reporting the raw total for the period asked about on its own. "How did signups do last week" means last week compared with the week before, every time.
+- Today's date is ${TODAY}. The warehouse keeps ninety days of history ending today. A query that reaches further back than that, or that asks for a range longer than ninety days, fails; when that happens, say so and offer a narrower range that would fit, rather than trying a slightly different range yourself and hoping it works.
+- Write every reply in Slack's mrkdwn, not standard markdown: *bold* for emphasis, short bullet lists with a leading dash, and nothing else. Never use markdown headings (# or ##) or tables - Slack does not render either one, so they would show up as literal characters in the message.
+- A chart and a table built from your tool results are attached under your reply automatically. Keep the reply to the headline numbers and what they mean; do not list per-day or per-group values, the attachment shows them.
+- If a tool call fails, say plainly what failed - the metric, the range, or the dimension you tried to group by - and offer a narrower or different range instead. Never repeat the exact same failing query a second time in one turn; if the user wants another attempt, wait for them to ask or to give you a new range.
+- Be concise. Lead with the number and the comparison, then at most one or two sentences of context pulled from the metric's glossary below if it changes how the number should be read.`;
+
+export const SYSTEM_PROMPT = `${RULES}\n\n${renderCatalog()}`;
 
 export function streamAnswer({
   messages,
@@ -54,17 +66,17 @@ export function streamAnswer({
     model: openrouter.chat(resolveModel()),
     instructions: {
       role: "system",
-      content: `${assistantInstructions}\n\n${STORE_POLICIES}`,
+      content: SYSTEM_PROMPT,
       providerOptions: PROMPT_CACHE_OPTIONS,
     },
     messages,
     abortSignal,
-    tools: createTools(DEMO_USER.id, conversationId),
-    stopWhen: isStepCount(5),
+    tools: analyticsTools,
+    stopWhen: isStepCount(6),
     // functionId names the agent in the AI SDK's telemetry.
     // A per-call boolean beats the `dataCollection` default set in instrument.ts.
     telemetry: {
-      functionId: "slack-shopping-assistant",
+      functionId: "slack-analytics-assistant",
       recordInputs: recordContent,
       recordOutputs: recordContent,
     },

@@ -2,6 +2,8 @@ import * as Sentry from "@sentry/node";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
+  release: process.env.SENTRY_RELEASE,
+  environment: process.env.SENTRY_ENVIRONMENT ?? "development",
   tracesSampleRate: 1,
   // Prompts and replies are off by default for this app; src/agent.ts turns
   // them on per call when the message is in a channel.

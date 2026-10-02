@@ -1,27 +1,16 @@
-import "./instrument";
+import "./instrument.ts";
 import * as Sentry from "@sentry/node";
 import { App } from "@slack/bolt";
 import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
 import type { BlockFeedbackButtonsAction } from "@slack/bolt";
-import type { BlockButtonAction } from "@slack/bolt";
-import type {
-  AppMentionEvent,
-  CarouselBlock,
-  KnownBlock,
-  MessageEvent,
-  TableBlock,
-} from "@slack/types";
+import type { AppMentionEvent, KnownBlock, MessageEvent } from "@slack/types";
 import type { WebClient } from "@slack/web-api";
 import type { ModelMessage } from "ai";
-import type { AccountInfo, ProductCard } from "lib/ai/tools";
-import { streamAnswer, TOOL_TITLES } from "./agent";
+import { streamAnswer } from "./agent.ts";
+import { answerBlocks, type ToolOutcome } from "./analytics/blocks.ts";
+import { TOOL_TITLES } from "./analytics/tools.ts";
 
-const required = [
-  "SLACK_BOT_TOKEN",
-  "SLACK_APP_TOKEN",
-  "OPENROUTER_API_KEY",
-  "DATABASE_URL",
-] as const;
+const required = ["SLACK_BOT_TOKEN", "SLACK_APP_TOKEN", "OPENROUTER_API_KEY"] as const;
 
 for (const name of required) {
   if (!process.env[name]) {
@@ -32,7 +21,7 @@ for (const name of required) {
   }
 }
 
-const ERROR_REPLY = "The shopping assistant hit an error. Please try again.";
+const ERROR_REPLY = "The analytics assistant hit an error. Please try again.";
 
 const FEEDBACK_BLOCK: KnownBlock[] = [
   {
@@ -40,7 +29,7 @@ const FEEDBACK_BLOCK: KnownBlock[] = [
     elements: [
       {
         type: "mrkdwn",
-        text: "AI-generated. Check order details before you act on them.",
+        text: "AI-generated. Verify important numbers before you act on them.",
       },
     ],
   },
@@ -63,12 +52,12 @@ const FEEDBACK_BLOCK: KnownBlock[] = [
   },
 ];
 
-// Shopping-flavored status lines shown while the assistant is thinking.
+// Analytics-flavored status lines shown while the assistant is thinking.
 const LOADING_MESSAGES = [
-  "Checking the shelves...",
-  "Reading the order book...",
-  "Counting loyalty points...",
-  "Fetching product details...",
+  "Querying the warehouse...",
+  "Crunching the numbers...",
+  "Checking the date range...",
+  "Comparing periods...",
 ];
 
 const app = new App({
@@ -80,6 +69,18 @@ const app = new App({
 // One entry per reply in progress, so the stop button can cancel the model
 // call of its own thread.
 const activeRuns = new Map<string, AbortController>();
+
+// Bolt handles every event inside one long-lived process. Without a fresh
+// isolation scope and trace, each message would join the previous message's
+// trace and inherit its user and conversation id.
+function startMessageSpan<T>(
+  options: Parameters<typeof Sentry.startSpan>[0],
+  callback: () => Promise<T>,
+): Promise<T> {
+  return Sentry.withIsolationScope(() =>
+    Sentry.startNewTrace(() => Sentry.startSpan(options, callback)),
+  );
+}
 
 async function respond({
   client,
@@ -108,7 +109,7 @@ async function respond({
 
   // One Slack message is one trace: this span is the root, so the model and
   // tool spans from the AI SDK's telemetry nest inside it.
-  await Sentry.startSpan(
+  await startMessageSpan(
     {
       name: "slack.message",
       op: "slack.message",
@@ -116,6 +117,7 @@ async function respond({
         "gen_ai.conversation.id": conversationId,
         "slack.channel": event.channel,
         "slack.channel_type": channelType,
+        "slack.record_content": recordContent,
       },
     },
     async () => {
@@ -147,10 +149,8 @@ async function respond({
           "tool-error": "error",
         } as const;
 
-        let reply = "";
-        const found = new Map<string, ProductCard>();
-        let orders: AccountInfo["orders"] = [];
         const failed: string[] = [];
+        const outcomes: ToolOutcome[] = [];
 
         for await (const part of streamAnswer({
           messages,
@@ -160,7 +160,6 @@ async function respond({
         }).fullStream) {
           switch (part.type) {
             case "text-delta":
-              reply += part.text;
               await stream.append({ markdown_text: part.text });
               break;
             case "tool-call":
@@ -176,17 +175,12 @@ async function respond({
                   },
                 ],
               });
-              if (part.type === "tool-result" && !part.dynamic) {
-                if (part.toolName === "searchProducts") {
-                  for (const p of part.output.products) found.set(p.handle, p);
-                } else if (
-                  part.toolName === "getProduct" &&
-                  part.output.product
-                ) {
-                  found.set(part.output.product.handle, part.output.product);
-                } else if (part.toolName === "getAccountInfo") {
-                  orders = part.output.orders;
-                }
+              if (part.type === "tool-result") {
+                outcomes.push({
+                  toolName: part.toolName,
+                  input: part.input,
+                  output: part.output,
+                });
               }
               if (part.type === "tool-error") {
                 failed.push(TOOL_TITLES[part.toolName] ?? part.toolName);
@@ -203,19 +197,8 @@ async function respond({
           }
         }
 
-        // A search returns up to six products and the model often picks a few
-        // (for example "under $60"), so show only the ones the reply names.
-        const products = [...found.values()].filter((p) =>
-          reply.includes(p.title),
-        );
-        const named = orders.filter((o) => reply.includes(o.id));
         await stream.stop({
-          blocks: [
-            ...failureNotice(failed),
-            ...productCarousel(products),
-            ...ordersTable(named),
-            ...FEEDBACK_BLOCK,
-          ],
+          blocks: [...failureNotice(failed), ...answerBlocks(outcomes), ...FEEDBACK_BLOCK],
         });
       } catch (error) {
         Sentry.captureException(error);
@@ -253,7 +236,6 @@ app.event(
     client: WebClient;
   }) => {
     const text = stripMention(event.text ?? "");
-    await titleThread(client, event, text);
     // Slack sends no channel_type with app_mention, so a mention in a
     // private channel counts as a channel here too.
     await respond({
@@ -314,45 +296,6 @@ app.event("agent_session_stopped", async ({ event }) => {
   activeRuns.get(`${channel}:${thread_ts}`)?.abort();
 });
 
-// A click on a product card's button is a new turn in the same thread.
-app.action<BlockButtonAction>(
-  "product_details",
-  async ({ ack, action, body, client, context, say }) => {
-    await ack();
-    const channel = body.channel?.id;
-    const thread_ts = body.message?.thread_ts ?? body.message?.ts;
-    if (!channel || !thread_ts || !action.value) return;
-
-    // Bolt gives sayStream and setStatus to event listeners only.
-    const sayStream: SayStreamFn = (args) =>
-      client.chatStream({
-        channel,
-        thread_ts,
-        recipient_team_id: context.teamId ?? context.enterpriseId,
-        recipient_user_id: body.user.id,
-        ...args,
-      });
-    const setStatus: SetStatusFn = (status) =>
-      client.assistant.threads.setStatus({
-        channel_id: channel,
-        thread_ts,
-        ...(typeof status === "string" ? { status } : status),
-      });
-
-    await respond({
-      client,
-      event: { channel, ts: action.action_ts, thread_ts, user: body.user.id },
-      text: `Tell me more about the ${action.value}.`,
-      sayStream,
-      setStatus,
-      say,
-      // Slack DM channel ids start with "D"; this action carries no
-      // channel_type, so infer it from the id the way Slack's own clients do.
-      channelType: channel.startsWith("D") ? "im" : "channel",
-    });
-  },
-);
-
 app.action<BlockFeedbackButtonsAction>(
   "feedback",
   async ({ ack, payload, body, client }) => {
@@ -370,59 +313,8 @@ app.action<BlockFeedbackButtonsAction>(
   },
 );
 
-// Slack loads card images over the public internet, and the storefront runs
-// only on localhost, so the cards read the same files from GitHub.
-const PRODUCT_IMAGE_BASE =
-  "https://raw.githubusercontent.com/getsentry/debugging-agents-workshop/main/apps/storefront/public";
-
-function productCarousel(products: ProductCard[]): CarouselBlock[] {
-  if (products.length === 0) return [];
-  return [
-    {
-      type: "carousel",
-      // Slack limits: 10 cards per carousel, 200 characters per card body.
-      elements: products.slice(0, 10).map((p) => ({
-        type: "card",
-        hero_image: {
-          type: "image",
-          image_url: `${PRODUCT_IMAGE_BASE}${p.image}`,
-          alt_text: p.title,
-        },
-        title: { type: "mrkdwn", text: p.title },
-        subtitle: { type: "mrkdwn", text: `$${p.price}` },
-        body: { type: "mrkdwn", text: p.description.slice(0, 200) },
-        actions: [
-          {
-            type: "button",
-            action_id: "product_details",
-            text: { type: "plain_text", text: "Tell me more" },
-            value: p.title,
-          },
-        ],
-      })),
-    },
-  ];
-}
-
-function ordersTable(orders: AccountInfo["orders"]): TableBlock[] {
-  if (orders.length === 0) return [];
-  const row = (...cells: string[]) =>
-    cells.map((text) => ({ type: "raw_text" as const, text }));
-  return [
-    {
-      type: "table",
-      column_settings: [{}, {}, { align: "right" }],
-      rows: [
-        row("Order", "Status", "Total"),
-        ...orders.map((o) => row(o.id, o.status, `$${o.total}`)),
-      ],
-    },
-  ];
-}
-
-// Slack accepts its red "alert" block only in modals, so a failed tool gets a
-// plain section. The model may word a failure softly; this line comes from
-// the tool error itself.
+// A failed tool call gets a plain section. The model may word a failure
+// softly; this line comes from the tool error itself.
 function failureNotice(failed: string[]): KnownBlock[] {
   if (failed.length === 0) return [];
   return [
@@ -436,7 +328,8 @@ function failureNotice(failed: string[]): KnownBlock[] {
   ];
 }
 
-// The title is the label of the thread in Slack's list of agent chats.
+// The title is the label of the thread in Slack's list of agent chats. Slack
+// accepts it only for DM threads, so the mention handler does not call this.
 async function titleThread(
   client: WebClient,
   event: { channel: string; ts: string; thread_ts?: string },
@@ -448,7 +341,7 @@ async function titleThread(
     .catch((error) => console.warn("setTitle failed", error));
 }
 
-// Mentions arrive as "<@U0123> show me the apparel collection" - strip the
+// Mentions arrive as "<@U0123> how did signups do last week" - strip the
 // leading mention so the model sees a plain question.
 function stripMention(text: string): string {
   return text.replace(/^\s*<@[^>]+>\s*/, "").trim();
@@ -456,8 +349,8 @@ function stripMention(text: string): string {
 
 // Gives the agent thread memory: without a thread_ts the event is the start
 // of a new thread, so its own text is the whole history. With a thread_ts,
-// replay the thread from Slack so follow-ups like "refund that order" carry
-// the context a fresh call to streamAnswer() would otherwise lose.
+// replay the thread from Slack so follow-ups like "and by device?" carry the
+// context a fresh call to streamAnswer() would otherwise lose.
 async function loadThread({
   client,
   event,
@@ -495,8 +388,8 @@ async function loadThread({
 }
 
 // A bot message's `text` also holds Slack's plain-text fallback for the task
-// timeline, the cards, and the footer. The model copies that pattern into new
-// replies when it sees it in the history, so replay only the streamed text.
+// timeline and the footer. The model copies that pattern into new replies
+// when it sees it in the history, so replay only the streamed text.
 function replyText(message: { text?: string; blocks?: unknown[] }): string {
   const flatten = (node: unknown): string => {
     if (typeof node !== "object" || node === null) return "";
