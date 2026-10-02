@@ -24,12 +24,6 @@ function resolveModel(): string {
     : "anthropic/claude-sonnet-5";
 }
 
-// The breakpoint caches the tool definitions plus the system prompt; without
-// it Anthropic caches nothing.
-const PROMPT_CACHE_OPTIONS = {
-  openrouter: { cacheControl: { type: "ephemeral" } },
-};
-
 const TODAY = new Date().toISOString().slice(0, 10);
 
 // Anthropic only caches prompt prefixes of at least 1024 tokens (Sonnet 5),
@@ -67,7 +61,6 @@ export function streamAnswer({
     instructions: {
       role: "system",
       content: SYSTEM_PROMPT,
-      providerOptions: PROMPT_CACHE_OPTIONS,
     },
     messages,
     abortSignal,
