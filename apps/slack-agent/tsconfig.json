@@ -11,9 +11,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "paths": {
-      "lib/*": ["../storefront/lib/*"]
-    }
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts"]
 }

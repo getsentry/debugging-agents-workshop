@@ -23,7 +23,7 @@ each lab names the one that did the work.
 | App | Environment | Runtime | You do |
 | --- | --- | --- | --- |
 | `apps/storefront` | Browser chat on a Next.js app | Next.js, Vercel AI SDK, Postgres on Neon | Hands-on |
-| `apps/slack-agent` | Long-lived Slack bot | Node, Bolt (Socket Mode), Vercel AI SDK, same Postgres | Follow along |
+| `apps/slack-agent` | Long-lived Slack bot: product analytics assistant over a Postgres warehouse (Neon) | Node, Bolt (Socket Mode), Vercel AI SDK | Follow along |
 | `apps/pr-reviewer` | GitHub Actions job | Node, Flue (OpenTelemetry), OpenRouter | Follow along |
 
 All three call Claude Sonnet 5 through OpenRouter: the storefront and the
@@ -42,7 +42,7 @@ Do these once, before the day. Each takes a few minutes. See
    workshop, so no account is needed.
 3. A coding agent with Sentry's MCP server attached. Claude Code users install
    the `sentry` plugin. Other agents add <https://mcp.sentry.dev/mcp>.
-4. Node 22 and git.
+4. Node 22.18 or newer, and git.
 
 Then:
 

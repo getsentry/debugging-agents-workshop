@@ -42,7 +42,16 @@ function widget(title, displayType, query, layout, extra = {}) {
       },
     ],
     layout: { minH: 1, ...layout },
+    ...(extra.thresholds ? { thresholds: extra.thresholds } : {}),
   };
+}
+
+// Big-number tiles turn red below max1 (or above it, with polarity "-") and
+// green past max2; the numbers come from the agent-tracing talk.
+function tile(title, aggregate, conditions, x, [max1, max2], preferredPolarity, unit = null) {
+  return widget(title, "big_number", { aggregates: [aggregate], conditions }, { x, y: 0, w: 2, h: 1 }, {
+    thresholds: { max_values: { max1, max2 }, unit, preferredPolarity },
+  });
 }
 
 const dashboard = {
@@ -54,12 +63,15 @@ const dashboard = {
   period: "24h",
   filters: {},
   widgets: [
+    tile("Cache hit rate, %", CACHE_HIT, `${MODEL_CALLS} has:gen_ai.usage.input_tokens`, 0, [50, 80], "+"),
+    tile("Input tokens per model call", "avg(gen_ai.usage.input_tokens)", `${MODEL_CALLS} has:gen_ai.usage.input_tokens`, 2, [20000, 50000], "-"),
+    tile("Longest tool call", "max(span.duration)", TOOL_CALLS, 4, [2, 5], "-", "minute"),
     widget("Cache hit rate by release", "line",
       { columns: ["release"], aggregates: [CACHE_HIT], aliases: ["", "cached %"], conditions: MODEL_CALLS },
-      { x: 0, y: 0, w: 3, h: 2 }),
+      { x: 0, y: 1, w: 3, h: 2 }),
     widget("Input tokens by release", "bar",
       { columns: ["release"], aggregates: ["sum(gen_ai.usage.input_tokens)"], conditions: MODEL_CALLS },
-      { x: 3, y: 0, w: 3, h: 2 }),
+      { x: 3, y: 1, w: 3, h: 2 }),
     widget("Most expensive conversations", "table",
       {
         columns: ["gen_ai.conversation.id", "user.id"],
@@ -67,7 +79,7 @@ const dashboard = {
         conditions: MODEL_CALLS,
         orderby: "-sum(gen_ai.usage.input_tokens)",
       },
-      { x: 0, y: 2, w: 4, h: 2 }, { limit: 10 }),
+      { x: 0, y: 3, w: 4, h: 2 }, { limit: 10 }),
     widget("Tool calls and failures", "table",
       {
         columns: ["gen_ai.tool.name"],
@@ -75,10 +87,10 @@ const dashboard = {
         conditions: TOOL_CALLS,
         orderby: "-failure_count()",
       },
-      { x: 4, y: 2, w: 2, h: 2 }),
+      { x: 4, y: 3, w: 2, h: 2 }),
     widget("Model latency p95", "line",
       { columns: ["gen_ai.request.model"], aggregates: ["p95(span.duration)"], conditions: MODEL_CALLS },
-      { x: 0, y: 4, w: 6, h: 2 }),
+      { x: 0, y: 5, w: 6, h: 2 }),
   ],
 };
 

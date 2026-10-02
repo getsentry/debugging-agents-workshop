@@ -1,20 +1,24 @@
 diff --git a/apps/slack-agent/src/agent.ts b/apps/slack-agent/src/agent.ts
-index cb03988..6ad9239 100644
+index b2f1a22..1dbe3cc 100644
 --- a/apps/slack-agent/src/agent.ts
 +++ b/apps/slack-agent/src/agent.ts
-@@ -1,7 +1,7 @@
- import { createOpenRouter } from "@openrouter/ai-sdk-provider";
- import { isStepCount, streamText } from "ai";
- import type { ModelMessage } from "ai";
--import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
-+import { STORE_POLICIES } from "lib/ai/instructions";
- import { resolveModel } from "lib/ai/models";
- import { createTools } from "lib/ai/tools";
- import { DEMO_USER } from "lib/demo-user";
-@@ -53,7 +53,6 @@ export function streamAnswer({
+@@ -24,12 +24,6 @@ function resolveModel(): string {
+     : "anthropic/claude-sonnet-5";
+ }
+ 
+-// The breakpoint caches the tool definitions plus the system prompt; without
+-// it Anthropic caches nothing.
+-const PROMPT_CACHE_OPTIONS = {
+-  openrouter: { cacheControl: { type: "ephemeral" } },
+-};
+-
+ const TODAY = new Date().toISOString().slice(0, 10);
+ 
+ // Anthropic only caches prompt prefixes of at least 1024 tokens (Sonnet 5),
+@@ -66,7 +60,6 @@ export function streamAnswer({
      instructions: {
        role: "system",
-       content: `${assistantInstructions}\n\n${STORE_POLICIES}`,
+       content: SYSTEM_PROMPT,
 -      providerOptions: PROMPT_CACHE_OPTIONS,
      },
      messages,

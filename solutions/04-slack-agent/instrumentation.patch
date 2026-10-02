@@ -1,40 +1,22 @@
-diff --git a/apps/slack-agent/.env.example b/apps/slack-agent/.env.example
-index 0000000..0000000 100644
---- a/apps/slack-agent/.env.example
-+++ b/apps/slack-agent/.env.example
-@@ -14,3 +14,10 @@ DATABASE_URL=
- # Optional. One of the SUPPORTED_MODELS in ../storefront/lib/ai/models.ts.
- # Defaults to anthropic/claude-sonnet-5.
+diff --git b/apps/slack-agent/.env.example a/apps/slack-agent/.env.example
+index ff0cdae..6ff18d6 100644
+--- b/apps/slack-agent/.env.example
++++ a/apps/slack-agent/.env.example
+@@ -15,3 +15,10 @@ DATABASE_URL=
+ # openai/gpt-5-mini, google/gemini-2.5-flash. Defaults to
+ # anthropic/claude-sonnet-5.
  # OPENROUTER_MODEL=anthropic/claude-sonnet-5
 +
 +# Sentry DSN for this project (Project Settings > Client Keys)
 +SENTRY_DSN=
-+# Optional. Read automatically by the SDK; not passed to Sentry.init.
++# Optional. Defaults to "development".
 +SENTRY_ENVIRONMENT=
-+# Optional. Read automatically by the SDK; not passed to Sentry.init.
++# Optional. Tags every span and error with the release that produced it.
 +SENTRY_RELEASE=
-diff --git a/apps/slack-agent/README.md b/apps/slack-agent/README.md
-index 0000000..0000000 100644
---- a/apps/slack-agent/README.md
-+++ b/apps/slack-agent/README.md
-@@ -43,4 +43,12 @@ app created from an older manifest must have its manifest replaced on the App
- Manifest page at api.slack.com, then be reinstalled. Slack does not let an
- app go back to the older assistant experience.
- 
--Sentry is added to this app in `labs/04-slack-agent.md`.
-+## Sentry
-+
-+Set `SENTRY_DSN` in `.env.local` (`SENTRY_ENVIRONMENT` and `SENTRY_RELEASE`
-+are optional; the SDK reads them automatically). Each handled Slack message
-+becomes one trace: a root `slack.message` span tagged with the Slack channel
-+and the thread timestamp as the conversation id, with the model call and its
-+tool calls nested inside as `gen_ai` spans, and Postgres queries from `lib/db`
-+as `db.query` spans. The Sentry user is the Slack user who sent the message.
-+Errors go to Sentry as issues.
-diff --git a/apps/slack-agent/package-lock.json b/apps/slack-agent/package-lock.json
-index 0000000..0000000 100644
---- a/apps/slack-agent/package-lock.json
-+++ b/apps/slack-agent/package-lock.json
+diff --git b/apps/slack-agent/package-lock.json a/apps/slack-agent/package-lock.json
+index 5faac5c..1c6c73b 100644
+--- b/apps/slack-agent/package-lock.json
++++ a/apps/slack-agent/package-lock.json
 @@ -7,6 +7,7 @@
        "name": "slack-agent",
        "dependencies": {
@@ -43,49 +25,21 @@ index 0000000..0000000 100644
          "@slack/bolt": "^4.4.0",
          "ai": "7.0.64",
          "dotenv": "17.4.2",
-@@ -41,7 +42,19 @@
+@@ -70,17 +71,745 @@
          "zod": "^3.25.76 || ^4.1.8"
        }
      },
--    "node_modules/@ai-sdk/gateway/node_modules/@ai-sdk/provider-utils": {
-+    "node_modules/@ai-sdk/provider": {
-+      "version": "4.0.7",
-+      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider/-/provider-4.0.7.tgz",
-+      "integrity": "sha512-6or44XprPzKbr8zkmzosowSE0pxkvJcoojBL+mCZvPUt3kvXp3XSNqeVun9golb1acEfSo6yaEBRT18h2VU+1Q==",
-+      "license": "Apache-2.0",
-+      "dependencies": {
-+        "json-schema": "^0.4.0"
-+      },
-+      "engines": {
-+        "node": ">=22"
-+      }
-+    },
-+    "node_modules/@ai-sdk/provider-utils": {
-       "version": "5.0.27",
-       "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider-utils/-/provider-utils-5.0.27.tgz",
-       "integrity": "sha512-EzAn4pdgG5g0xXtH6lE2zyNmfjDQIDjATkfqzuidEI35g++hh4+07vnjzkT/RmGmIClPZiRj/Q2GMPV2V7mkHw==",
-@@ -60,16 +73,228 @@
-         "zod": "^3.25.76 || ^4.1.8"
-       }
-     },
--    "node_modules/@ai-sdk/provider": {
--      "version": "4.0.7",
--      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider/-/provider-4.0.7.tgz",
--      "integrity": "sha512-6or44XprPzKbr8zkmzosowSE0pxkvJcoojBL+mCZvPUt3kvXp3XSNqeVun9golb1acEfSo6yaEBRT18h2VU+1Q==",
--      "license": "Apache-2.0",
 +    "node_modules/@babel/code-frame": {
 +      "version": "7.29.7",
 +      "resolved": "https://sfw.security.sentry.io/npm/@babel/code-frame/-/code-frame-7.29.7.tgz",
 +      "integrity": "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==",
 +      "license": "MIT",
-       "dependencies": {
--        "json-schema": "^0.4.0"
++      "dependencies": {
 +        "@babel/helper-validator-identifier": "^7.29.7",
 +        "js-tokens": "^4.0.0",
 +        "picocolors": "^1.1.1"
-       },
-       "engines": {
--        "node": ">=22"
++      },
++      "engines": {
 +        "node": ">=6.9.0"
 +      }
 +    },
@@ -297,53 +251,6 @@ index 0000000..0000000 100644
 +      },
 +      "engines": {
 +        "node": ">=6.9.0"
-       }
-     },
-     "node_modules/@esbuild/aix-ppc64": {
-@@ -480,51 +705,555 @@
-         "node": ">=18"
-       }
-     },
--    "node_modules/@esbuild/win32-ia32": {
--      "version": "0.28.2",
--      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-ia32/-/win32-ia32-0.28.2.tgz",
--      "integrity": "sha512-YmJbfTlvU7Sdn9BB+4PRES4oB6pxgS37MAONj+hBr/cpXS1aBPKXxNnDbu+QCWPj0o9dgyxeq79g6c5P8KeuYA==",
--      "cpu": [
--        "ia32"
--      ],
--      "dev": true,
-+    "node_modules/@esbuild/win32-ia32": {
-+      "version": "0.28.2",
-+      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-ia32/-/win32-ia32-0.28.2.tgz",
-+      "integrity": "sha512-YmJbfTlvU7Sdn9BB+4PRES4oB6pxgS37MAONj+hBr/cpXS1aBPKXxNnDbu+QCWPj0o9dgyxeq79g6c5P8KeuYA==",
-+      "cpu": [
-+        "ia32"
-+      ],
-+      "dev": true,
-+      "license": "MIT",
-+      "optional": true,
-+      "os": [
-+        "win32"
-+      ],
-+      "engines": {
-+        "node": ">=18"
-+      }
-+    },
-+    "node_modules/@esbuild/win32-x64": {
-+      "version": "0.28.2",
-+      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-x64/-/win32-x64-0.28.2.tgz",
-+      "integrity": "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g==",
-+      "cpu": [
-+        "x64"
-+      ],
-+      "dev": true,
-+      "license": "MIT",
-+      "optional": true,
-+      "os": [
-+        "win32"
-+      ],
-+      "engines": {
-+        "node": ">=18"
 +      }
 +    },
 +    "node_modules/@jridgewell/gen-mapping": {
@@ -391,12 +298,13 @@ index 0000000..0000000 100644
 +        "@jridgewell/sourcemap-codec": "^1.4.14"
 +      }
 +    },
-+    "node_modules/@openrouter/ai-sdk-provider": {
-+      "version": "3.0.0",
-+      "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
-+      "integrity": "sha512-m9XTSWoODH2RM5OsZpaGiN7QRR8cdP5paBWq699Tu3JVmGPBKT8xF8XwV0ZBVVsjikD/JgWfak4VSsTR4wAVbg==",
-+      "license": "Apache-2.0",
-+      "engines": {
+     "node_modules/@openrouter/ai-sdk-provider": {
+       "version": "3.0.0",
+       "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
+       "integrity": "sha512-m9XTSWoODH2RM5OsZpaGiN7QRR8cdP5paBWq699Tu3JVmGPBKT8xF8XwV0ZBVVsjikD/JgWfak4VSsTR4wAVbg==",
+       "license": "Apache-2.0",
+       "engines": {
+-        "node": ">=22"
 +        "node": ">=22"
 +      },
 +      "peerDependencies": {
@@ -767,8 +675,10 @@ index 0000000..0000000 100644
 +      },
 +      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-+      },
-+      "peerDependencies": {
+       },
+       "peerDependencies": {
+-        "ai": "^7.0.0",
+-        "zod": "^3.25.76 || ^4.1.8"
 +        "rollup": ">=3.2.0",
 +        "webpack": ">=5.1.0"
 +      },
@@ -794,36 +704,19 @@ index 0000000..0000000 100644
 +      "version": "11.0.0",
 +      "resolved": "https://sfw.security.sentry.io/npm/@sentry/core/-/core-11.0.0.tgz",
 +      "integrity": "sha512-Sdmg21POKmNwZDz8pH/2FtilWeryh3yxhRxbfA1ph8SnX2DkXoqX6G+uXyjCSYagW2pefVklmSNeWHmUlSqioA==",
-       "license": "MIT",
--      "optional": true,
--      "os": [
--        "win32"
--      ],
++      "license": "MIT",
 +      "dependencies": {
 +        "@sentry/conventions": "^0.23.0"
 +      },
-       "engines": {
--        "node": ">=18"
++      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-       }
-     },
--    "node_modules/@esbuild/win32-x64": {
--      "version": "0.28.2",
--      "resolved": "https://sfw.security.sentry.io/npm/@esbuild/win32-x64/-/win32-x64-0.28.2.tgz",
--      "integrity": "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g==",
--      "cpu": [
--        "x64"
--      ],
--      "dev": true,
++      }
++    },
 +    "node_modules/@sentry/node": {
 +      "version": "11.0.0",
 +      "resolved": "https://sfw.security.sentry.io/npm/@sentry/node/-/node-11.0.0.tgz",
 +      "integrity": "sha512-ZHk2wYvnKPfaq05YHnva/a6EzZDLTG0EStcWnQdjSae/OxluwCfOfMqwlsKxaY8KDUkyqokTCUPqJITZpUH1Jw==",
-       "license": "MIT",
--      "optional": true,
--      "os": [
--        "win32"
--      ],
++      "license": "MIT",
 +      "dependencies": {
 +        "@opentelemetry/api": "^1.9.1",
 +        "@sentry/bundler-plugins": "11.0.0",
@@ -833,16 +726,10 @@ index 0000000..0000000 100644
 +        "@sentry/server-runtime-injection": "11.0.0",
 +        "@sentry/server-utils": "11.0.0"
 +      },
-       "engines": {
--        "node": ">=18"
++      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-       }
-     },
--    "node_modules/@openrouter/ai-sdk-provider": {
--      "version": "3.0.0",
--      "resolved": "https://sfw.security.sentry.io/npm/@openrouter/ai-sdk-provider/-/ai-sdk-provider-3.0.0.tgz",
--      "integrity": "sha512-m9XTSWoODH2RM5OsZpaGiN7QRR8cdP5paBWq699Tu3JVmGPBKT8xF8XwV0ZBVVsjikD/JgWfak4VSsTR4wAVbg==",
--      "license": "Apache-2.0",
++      }
++    },
 +    "node_modules/@sentry/opentelemetry": {
 +      "version": "11.0.0",
 +      "resolved": "https://sfw.security.sentry.io/npm/@sentry/opentelemetry/-/opentelemetry-11.0.0.tgz",
@@ -852,13 +739,10 @@ index 0000000..0000000 100644
 +        "@sentry/conventions": "^0.23.0",
 +        "@sentry/core": "11.0.0"
 +      },
-       "engines": {
--        "node": ">=22"
++      "engines": {
 +        "node": ">=20.19.0 <22.0.0 || >=22.12.0 <23.0.0 || >=23.2.0"
-       },
-       "peerDependencies": {
--        "ai": "^7.0.0",
--        "zod": "^3.25.76 || ^4.1.8"
++      },
++      "peerDependencies": {
 +        "@opentelemetry/api": "^1.9.0"
 +      }
 +    },
@@ -890,33 +774,7 @@ index 0000000..0000000 100644
        }
      },
      "node_modules/@slack/bolt": {
-@@ -1177,25 +1906,6 @@
-         "zod": "^3.25.76 || ^4.1.8"
-       }
-     },
--    "node_modules/ai/node_modules/@ai-sdk/provider-utils": {
--      "version": "5.0.27",
--      "resolved": "https://sfw.security.sentry.io/npm/@ai-sdk/provider-utils/-/provider-utils-5.0.27.tgz",
--      "integrity": "sha512-EzAn4pdgG5g0xXtH6lE2zyNmfjDQIDjATkfqzuidEI35g++hh4+07vnjzkT/RmGmIClPZiRj/Q2GMPV2V7mkHw==",
--      "license": "Apache-2.0",
--      "dependencies": {
--        "@ai-sdk/provider": "4.0.7",
--        "@standard-schema/spec": "^1.1.0",
--        "@workflow/serde": "4.1.0",
--        "eventsource-parser": "^3.0.8",
--        "undici": "^7.28.0"
--      },
--      "engines": {
--        "node": ">=22"
--      },
--      "peerDependencies": {
--        "zod": "^3.25.76 || ^4.1.8"
--      }
--    },
-     "node_modules/asynckit": {
-       "version": "0.4.0",
-       "resolved": "https://sfw.security.sentry.io/npm/asynckit/-/asynckit-0.4.0.tgz",
-@@ -1214,6 +1924,27 @@
+@@ -751,6 +1480,27 @@
          "proxy-from-env": "^2.1.0"
        }
      },
@@ -944,7 +802,7 @@ index 0000000..0000000 100644
      "node_modules/body-parser": {
        "version": "2.3.0",
        "resolved": "https://sfw.security.sentry.io/npm/body-parser/-/body-parser-2.3.0.tgz",
-@@ -1251,6 +1982,51 @@
+@@ -788,6 +1538,51 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -996,7 +854,7 @@ index 0000000..0000000 100644
      "node_modules/buffer-equal-constant-time": {
        "version": "1.0.1",
        "resolved": "https://sfw.security.sentry.io/npm/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz",
-@@ -1295,6 +2071,26 @@
+@@ -832,6 +1627,26 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -1023,7 +881,7 @@ index 0000000..0000000 100644
      "node_modules/combined-stream": {
        "version": "1.0.8",
        "resolved": "https://sfw.security.sentry.io/npm/combined-stream/-/combined-stream-1.0.8.tgz",
-@@ -1329,6 +2125,12 @@
+@@ -866,6 +1681,12 @@
          "node": ">= 0.6"
        }
      },
@@ -1036,7 +894,7 @@ index 0000000..0000000 100644
      "node_modules/cookie": {
        "version": "0.7.2",
        "resolved": "https://sfw.security.sentry.io/npm/cookie/-/cookie-0.7.2.tgz",
-@@ -1548,6 +2350,12 @@
+@@ -960,6 +1781,12 @@
        "integrity": "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==",
        "license": "MIT"
      },
@@ -1049,8 +907,8 @@ index 0000000..0000000 100644
      "node_modules/encodeurl": {
        "version": "2.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/encodeurl/-/encodeurl-2.0.0.tgz",
-@@ -1644,6 +2452,15 @@
-         "@esbuild/win32-x64": "0.28.2"
+@@ -1014,6 +1841,15 @@
+         "node": ">= 0.4"
        }
      },
 +    "node_modules/escalade": {
@@ -1065,7 +923,7 @@ index 0000000..0000000 100644
      "node_modules/escape-html": {
        "version": "1.0.3",
        "resolved": "https://sfw.security.sentry.io/npm/escape-html/-/escape-html-1.0.3.tgz",
-@@ -1837,6 +2654,15 @@
+@@ -1192,6 +2028,15 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -1081,7 +939,7 @@ index 0000000..0000000 100644
      "node_modules/get-intrinsic": {
        "version": "1.3.0",
        "resolved": "https://sfw.security.sentry.io/npm/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
-@@ -1874,6 +2700,23 @@
+@@ -1229,6 +2074,23 @@
          "node": ">= 0.4"
        }
      },
@@ -1105,7 +963,7 @@ index 0000000..0000000 100644
      "node_modules/gopd": {
        "version": "1.2.0",
        "resolved": "https://sfw.security.sentry.io/npm/gopd/-/gopd-1.2.0.tgz",
-@@ -1886,6 +2729,15 @@
+@@ -1241,6 +2103,15 @@
          "url": "https://github.com/sponsors/ljharb"
        }
      },
@@ -1121,7 +979,7 @@ index 0000000..0000000 100644
      "node_modules/has-symbols": {
        "version": "1.1.0",
        "resolved": "https://sfw.security.sentry.io/npm/has-symbols/-/has-symbols-1.1.0.tgz",
-@@ -2013,12 +2865,42 @@
+@@ -1368,12 +2239,42 @@
          "url": "https://github.com/sponsors/sindresorhus"
        }
      },
@@ -1164,26 +1022,7 @@ index 0000000..0000000 100644
      "node_modules/jsonwebtoken": {
        "version": "9.0.3",
        "resolved": "https://sfw.security.sentry.io/npm/jsonwebtoken/-/jsonwebtoken-9.0.3.tgz",
-@@ -2041,6 +2923,18 @@
-         "npm": ">=6"
-       }
-     },
-+    "node_modules/jsonwebtoken/node_modules/semver": {
-+      "version": "7.8.5",
-+      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-7.8.5.tgz",
-+      "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
-+      "license": "ISC",
-+      "bin": {
-+        "semver": "bin/semver.js"
-+      },
-+      "engines": {
-+        "node": ">=10"
-+      }
-+    },
-     "node_modules/jwa": {
-       "version": "2.0.1",
-       "resolved": "https://sfw.security.sentry.io/npm/jwa/-/jwa-2.0.1.tgz",
-@@ -2104,6 +2998,24 @@
+@@ -1471,6 +2372,24 @@
        "integrity": "sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==",
        "license": "MIT"
      },
@@ -1208,7 +1047,7 @@ index 0000000..0000000 100644
      "node_modules/math-intrinsics": {
        "version": "1.1.0",
        "resolved": "https://sfw.security.sentry.io/npm/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
-@@ -2163,6 +3075,30 @@
+@@ -1530,6 +2449,30 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -1239,7 +1078,7 @@ index 0000000..0000000 100644
      "node_modules/ms": {
        "version": "2.1.3",
        "resolved": "https://sfw.security.sentry.io/npm/ms/-/ms-2.1.3.tgz",
-@@ -2198,6 +3134,15 @@
+@@ -1565,6 +2508,15 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -1255,7 +1094,7 @@ index 0000000..0000000 100644
      "node_modules/object-inspect": {
        "version": "1.13.4",
        "resolved": "https://sfw.security.sentry.io/npm/object-inspect/-/object-inspect-1.13.4.tgz",
-@@ -2231,6 +3176,42 @@
+@@ -1598,6 +2550,42 @@
          "wrappy": "1"
        }
      },
@@ -1298,7 +1137,7 @@ index 0000000..0000000 100644
      "node_modules/p-finally": {
        "version": "1.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/p-finally/-/p-finally-1.0.0.tgz",
-@@ -2296,6 +3277,31 @@
+@@ -1663,6 +2651,31 @@
          "node": ">= 0.8"
        }
      },
@@ -1330,7 +1169,7 @@ index 0000000..0000000 100644
      "node_modules/path-to-regexp": {
        "version": "8.4.2",
        "resolved": "https://sfw.security.sentry.io/npm/path-to-regexp/-/path-to-regexp-8.4.2.tgz",
-@@ -2395,6 +3401,12 @@
+@@ -1762,6 +2775,12 @@
          "split2": "^4.1.0"
        }
      },
@@ -1343,26 +1182,23 @@ index 0000000..0000000 100644
      "node_modules/postgres-array": {
        "version": "2.0.0",
        "resolved": "https://sfw.security.sentry.io/npm/postgres-array/-/postgres-array-2.0.0.tgz",
-@@ -2556,15 +3568,12 @@
+@@ -1922,6 +2941,15 @@
+       "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==",
        "license": "MIT"
      },
-     "node_modules/semver": {
--      "version": "7.8.5",
--      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-7.8.5.tgz",
--      "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
++    "node_modules/semver": {
 +      "version": "6.3.1",
 +      "resolved": "https://sfw.security.sentry.io/npm/semver/-/semver-6.3.1.tgz",
 +      "integrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
-       "license": "ISC",
-       "bin": {
-         "semver": "bin/semver.js"
--      },
--      "engines": {
--        "node": ">=10"
-       }
-     },
++      "license": "ISC",
++      "bin": {
++        "semver": "bin/semver.js"
++      }
++    },
      "node_modules/send": {
-@@ -2593,6 +3602,18 @@
+       "version": "1.2.1",
+       "resolved": "https://sfw.security.sentry.io/npm/send/-/send-1.2.1.tgz",
+@@ -1948,6 +2976,18 @@
          "url": "https://opencollective.com/express"
        }
      },
@@ -1381,7 +1217,7 @@ index 0000000..0000000 100644
      "node_modules/serve-static": {
        "version": "2.2.1",
        "resolved": "https://sfw.security.sentry.io/npm/serve-static/-/serve-static-2.2.1.tgz",
-@@ -2708,6 +3729,21 @@
+@@ -2063,6 +3103,21 @@
          "node": ">= 0.8"
        }
      },
@@ -1403,7 +1239,7 @@ index 0000000..0000000 100644
      "node_modules/toidentifier": {
        "version": "1.0.1",
        "resolved": "https://sfw.security.sentry.io/npm/toidentifier/-/toidentifier-1.0.1.tgz",
-@@ -2835,6 +3871,36 @@
+@@ -2171,6 +3226,36 @@
          "node": ">= 0.8"
        }
      },
@@ -1440,7 +1276,7 @@ index 0000000..0000000 100644
      "node_modules/vary": {
        "version": "1.1.2",
        "resolved": "https://sfw.security.sentry.io/npm/vary/-/vary-1.1.2.tgz",
-@@ -2880,6 +3946,12 @@
+@@ -2216,6 +3301,12 @@
          "node": ">=0.4"
        }
      },
@@ -1453,11 +1289,20 @@ index 0000000..0000000 100644
      "node_modules/zod": {
        "version": "4.4.3",
        "resolved": "https://sfw.security.sentry.io/npm/zod/-/zod-4.4.3.tgz",
-diff --git a/apps/slack-agent/package.json b/apps/slack-agent/package.json
-index 0000000..0000000 100644
---- a/apps/slack-agent/package.json
-+++ b/apps/slack-agent/package.json
-@@ -12,6 +12,7 @@
+diff --git b/apps/slack-agent/package.json a/apps/slack-agent/package.json
+index d62b48b..94f19e0 100644
+--- b/apps/slack-agent/package.json
++++ a/apps/slack-agent/package.json
+@@ -6,7 +6,7 @@
+     "node": ">=22.18"
+   },
+   "scripts": {
+-    "dev": "node --env-file=.env.local src/app.ts",
++    "dev": "node --env-file=.env.local --import ./src/instrument.ts src/app.ts",
+     "typecheck": "tsc --noEmit",
+     "test": "node --test src/analytics/store.test.ts src/analytics/blocks.test.ts",
+     "manifest:link": "node scripts/manifest-link.mjs",
+@@ -14,6 +14,7 @@
    },
    "dependencies": {
      "@openrouter/ai-sdk-provider": "3.0.0",
@@ -1465,84 +1310,133 @@ index 0000000..0000000 100644
      "@slack/bolt": "^4.4.0",
      "ai": "7.0.64",
      "dotenv": "17.4.2",
-diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
-index 0000000..0000000 100644
---- a/apps/slack-agent/src/app.ts
-+++ b/apps/slack-agent/src/app.ts
+diff --git b/apps/slack-agent/src/agent.ts a/apps/slack-agent/src/agent.ts
+index d247f93..b4285c1 100644
+--- b/apps/slack-agent/src/agent.ts
++++ a/apps/slack-agent/src/agent.ts
+@@ -55,10 +55,12 @@ export function streamAnswer({
+   messages,
+   conversationId,
+   abortSignal,
++  recordContent,
+ }: {
+   messages: ModelMessage[];
+   conversationId: string;
+   abortSignal?: AbortSignal;
++  recordContent: boolean;
+ }) {
+   return streamText({
+     model: openrouter.chat(resolveModel()),
+@@ -71,5 +73,12 @@ export function streamAnswer({
+     abortSignal,
+     tools: analyticsTools,
+     stopWhen: isStepCount(6),
++    // functionId names the agent in the AI SDK's telemetry.
++    // A per-call boolean beats the `dataCollection` default set in instrument.ts.
++    telemetry: {
++      functionId: "slack-analytics-assistant",
++      recordInputs: recordContent,
++      recordOutputs: recordContent,
++    },
+   });
+ }
+diff --git b/apps/slack-agent/src/analytics/tools.ts a/apps/slack-agent/src/analytics/tools.ts
+index e2b5959..6e67576 100644
+--- b/apps/slack-agent/src/analytics/tools.ts
++++ a/apps/slack-agent/src/analytics/tools.ts
+@@ -1,3 +1,4 @@
++import * as Sentry from "@sentry/node";
+ import { tool } from "ai";
+ import { z } from "zod";
+ import { METRICS, scan, total, type MetricDef, type Row } from "./store.ts";
+@@ -57,14 +58,32 @@ function changeOf(
+   };
+ }
+ 
++// A scan's arguments and row count are the only things that stay useful in
++// a trace where inputs and outputs are not recorded - a direct message. So
++// every scan gets its own low-cardinality span, wrapped here once for all
++// four tools, instead of the full query and its result.
+ async function scannedRows(args: {
+   metric: string;
+   from: string;
+   to: string;
+   groupBy?: string;
+ }): Promise<Row[]> {
+-  const { rows } = await scan(args);
+-  return rows;
++  return Sentry.startSpan(
++    {
++      name: `scan ${args.metric}`,
++      op: "analytics.scan",
++      attributes: {
++        "analytics.metric": args.metric,
++        "analytics.range_days": rangeDaysOf(args.from, args.to),
++        "analytics.group_by": args.groupBy ?? "none",
++      },
++    },
++    async (span) => {
++      const { rows } = await scan(args);
++      span.setAttribute("analytics.row_count", rows.length);
++      return rows;
++    },
++  );
+ }
+ 
+ function groupTotalsOf(rows: Row[], groupBy: string, unit: MetricDef["unit"]) {
+diff --git b/apps/slack-agent/src/app.ts a/apps/slack-agent/src/app.ts
+index b66a61c..ac6b07d 100644
+--- b/apps/slack-agent/src/app.ts
++++ a/apps/slack-agent/src/app.ts
 @@ -1,3 +1,5 @@
-+import "./instrument";
++import "./instrument.ts";
 +import * as Sentry from "@sentry/node";
  import { App } from "@slack/bolt";
  import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
  import type { BlockFeedbackButtonsAction } from "@slack/bolt";
-@@ -101,101 +103,133 @@ async function respond({
+@@ -68,6 +70,18 @@ const app = new App({
+ // call of its own thread.
+ const activeRuns = new Map<string, AbortController>();
+ 
++// Bolt handles every event inside one long-lived process. Without a fresh
++// isolation scope and trace, each message would join the previous message's
++// trace and inherit its user and conversation id.
++function startMessageSpan<T>(
++  options: Parameters<typeof Sentry.startSpan>[0],
++  callback: () => Promise<T>,
++): Promise<T> {
++  return Sentry.withIsolationScope(() =>
++    Sentry.startNewTrace(() => Sentry.startSpan(options, callback)),
++  );
++}
++
+ async function respond({
+   client,
+   event,
+@@ -86,14 +100,36 @@ async function respond({
+   channelType: "im" | "channel";
+ }) {
+   const conversationId = event.thread_ts ?? event.ts;
++  const recordContent = channelType !== "im";
+   let stream: ReturnType<SayStreamFn> | undefined;
+ 
+   const run = new AbortController();
    const runKey = `${event.channel}:${conversationId}`;
    activeRuns.set(runKey, run);
  
 -  try {
 -    await setStatus({
--      status: "is thinking...",
--      loading_messages: LOADING_MESSAGES,
--    }).catch((error) => console.warn("setStatus failed", error));
--
--    const messages = await loadThread({ client, event, conversationId, text });
--
--    stream = sayStream({ task_display_mode: "timeline" });
--
--    const taskStatus = {
--      "tool-call": "in_progress",
--      "tool-result": "complete",
--      "tool-error": "error",
--    } as const;
--
--    let reply = "";
--    const found = new Map<string, ProductCard>();
--    let orders: AccountInfo["orders"] = [];
--    const failed: string[] = [];
--
--    for await (const part of streamAnswer({
--      messages,
--      conversationId,
--      abortSignal: run.signal,
--    }).fullStream) {
--      switch (part.type) {
--        case "text-delta":
--          reply += part.text;
--          await stream.append({ markdown_text: part.text });
--          break;
--        case "tool-call":
--        case "tool-result":
--        case "tool-error":
--          await stream.append({
--            chunks: [
--              {
--                type: "task_update",
--                id: part.toolCallId,
--                title: TOOL_TITLES[part.toolName] ?? part.toolName,
--                status: taskStatus[part.type],
--              },
--            ],
--          });
--          if (part.type === "tool-result" && !part.dynamic) {
--            if (part.toolName === "searchProducts") {
--              for (const p of part.output.products) found.set(p.handle, p);
--            } else if (part.toolName === "getProduct" && part.output.product) {
--              found.set(part.output.product.handle, part.output.product);
--            } else if (part.toolName === "getAccountInfo") {
--              orders = part.output.orders;
--            }
--          }
--          if (part.type === "tool-error") {
--            failed.push(TOOL_TITLES[part.toolName] ?? part.toolName);
 +  // One Slack message is one trace: this span is the root, so the model and
 +  // tool spans from the AI SDK's telemetry nest inside it.
-+  await Sentry.startSpan(
++  await startMessageSpan(
 +    {
 +      name: "slack.message",
 +      op: "slack.message",
 +      attributes: {
 +        "gen_ai.conversation.id": conversationId,
 +        "slack.channel": event.channel,
++        "slack.channel_type": channelType,
++        "slack.record_content": recordContent,
 +      },
 +    },
 +    async () => {
@@ -1555,140 +1449,31 @@ index 0000000..0000000 100644
 +
 +      try {
 +        await setStatus({
-+          status: "is thinking...",
-+          loading_messages: LOADING_MESSAGES,
-+        }).catch((error) => console.warn("setStatus failed", error));
-+
-+        const messages = await loadThread({
-+          client,
-+          event,
-+          conversationId,
-+          text,
-+        });
-+
-+        stream = sayStream({ task_display_mode: "timeline" });
-+
-+        const taskStatus = {
-+          "tool-call": "in_progress",
-+          "tool-result": "complete",
-+          "tool-error": "error",
-+        } as const;
-+
-+        let reply = "";
-+        const found = new Map<string, ProductCard>();
-+        let orders: AccountInfo["orders"] = [];
-+        const failed: string[] = [];
-+
-+        for await (const part of streamAnswer({
-+          messages,
-+          conversationId,
-+          abortSignal: run.signal,
-+        }).fullStream) {
-+          switch (part.type) {
-+            case "text-delta":
-+              reply += part.text;
-+              await stream.append({ markdown_text: part.text });
-+              break;
-+            case "tool-call":
-+            case "tool-result":
-+            case "tool-error":
-+              await stream.append({
-+                chunks: [
-+                  {
-+                    type: "task_update",
-+                    id: part.toolCallId,
-+                    title: TOOL_TITLES[part.toolName] ?? part.toolName,
-+                    status: taskStatus[part.type],
-+                  },
-+                ],
-+              });
-+              if (part.type === "tool-result" && !part.dynamic) {
-+                if (part.toolName === "searchProducts") {
-+                  for (const p of part.output.products) found.set(p.handle, p);
-+                } else if (
-+                  part.toolName === "getProduct" &&
-+                  part.output.product
-+                ) {
-+                  found.set(part.output.product.handle, part.output.product);
-+                } else if (part.toolName === "getAccountInfo") {
-+                  orders = part.output.orders;
-+                }
-+              }
-+              if (part.type === "tool-error") {
-+                failed.push(TOOL_TITLES[part.toolName] ?? part.toolName);
-+              }
-+              break;
-+            case "abort":
-+              // The user pressed stop. Slack has already closed the streamed
-+              // message, so there is nothing left to stop or decorate.
-+              return;
-+            case "error":
-+              throw part.error;
-+            default:
-+              break;
-           }
--          break;
--        case "abort":
--          // The user pressed stop. Slack has already closed the streamed
--          // message, so there is nothing left to stop or decorate.
--          return;
--        case "error":
--          throw part.error;
--        default:
--          break;
-+        }
-+
-+        // A search returns up to six products and the model often picks a few
-+        // (for example "under $60"), so show only the ones the reply names.
-+        const products = [...found.values()].filter((p) =>
-+          reply.includes(p.title),
-+        );
-+        const named = orders.filter((o) => reply.includes(o.id));
-+        await stream.stop({
-+          blocks: [
-+            ...failureNotice(failed),
-+            ...productCarousel(products),
-+            ...ordersTable(named),
-+            ...FEEDBACK_BLOCK,
-+          ],
-+        });
+           status: "is thinking...",
+           loading_messages: LOADING_MESSAGES,
+         }).catch((error) => console.warn("setStatus failed", error));
+@@ -120,6 +156,7 @@ async function respond({
+           messages,
+           conversationId,
+           abortSignal: run.signal,
++          recordContent,
+         }).fullStream) {
+           switch (part.type) {
+             case "text-delta":
+@@ -163,21 +200,24 @@ async function respond({
+         await stream.stop({
+           blocks: [...failureNotice(failed), ...answerBlocks(outcomes), ...FEEDBACK_BLOCK],
+         });
+-  } catch (error) {
+-    if (stream) {
 +      } catch (error) {
 +        Sentry.captureException(error);
 +        if (stream) {
-+          await stream.stop({ markdown_text: ERROR_REPLY });
-+        } else {
-+          await say({ text: ERROR_REPLY, thread_ts: conversationId });
-+        }
-+        throw error;
-+      } finally {
-+        activeRuns.delete(runKey);
-+        // Slack's agent messaging experience keeps the status until the app
-+        // clears it; the older assistant experience cleared it on the reply.
-+        await setStatus("").catch((error) =>
-+          console.warn("setStatus failed", error),
-+        );
-       }
--    }
--
--    // A search returns up to six products and the model often picks a few
--    // (for example "under $60"), so show only the ones the reply names.
--    const products = [...found.values()].filter((p) => reply.includes(p.title));
--    const named = orders.filter((o) => reply.includes(o.id));
--    await stream.stop({
--      blocks: [
--        ...failureNotice(failed),
--        ...productCarousel(products),
--        ...ordersTable(named),
--        ...FEEDBACK_BLOCK,
--      ],
--    });
--  } catch (error) {
--    if (stream) {
--      await stream.stop({ markdown_text: ERROR_REPLY });
--    } else {
--      await say({ text: ERROR_REPLY, thread_ts: conversationId });
--    }
--    throw error;
+           await stream.stop({ markdown_text: ERROR_REPLY });
+         } else {
+           await say({ text: ERROR_REPLY, thread_ts: conversationId });
+         }
+         throw error;
 -  } finally {
 -    activeRuns.delete(runKey);
 -    // Slack's agent messaging experience keeps the status until the app
@@ -1697,20 +1482,33 @@ index 0000000..0000000 100644
 -      console.warn("setStatus failed", error),
 -    );
 -  }
++      } finally {
++        activeRuns.delete(runKey);
++        // Slack's agent messaging experience keeps the status until the app
++        // clears it; the older assistant experience cleared it on the reply.
++        await setStatus("").catch((error) =>
++          console.warn("setStatus failed", error),
++        );
++      }
 +    },
 +  );
  }
  
  app.event(
-diff --git a/apps/slack-agent/src/instrument.ts b/apps/slack-agent/src/instrument.ts
+diff --git b/apps/slack-agent/src/instrument.ts a/apps/slack-agent/src/instrument.ts
 new file mode 100644
-index 0000000..0000000
+index 0000000..a35ca84
 --- /dev/null
-+++ b/apps/slack-agent/src/instrument.ts
-@@ -0,0 +1,6 @@
++++ a/apps/slack-agent/src/instrument.ts
+@@ -0,0 +1,11 @@
 +import * as Sentry from "@sentry/node";
 +
 +Sentry.init({
 +  dsn: process.env.SENTRY_DSN,
++  release: process.env.SENTRY_RELEASE,
++  environment: process.env.SENTRY_ENVIRONMENT ?? "development",
 +  tracesSampleRate: 1,
++  // Prompts and replies are off by default for this app; src/agent.ts turns
++  // them on per call when the message is in a channel.
++  dataCollection: { genAI: { inputs: false, outputs: false } },
 +});

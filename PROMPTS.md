@@ -92,16 +92,19 @@ Directory: `apps/slack-agent`. Full lab: [labs/04-slack-agent.md](labs/04-slack-
 ```text
 Instrument this Node.js Slack bot with Sentry. Create a new Sentry project
 for it in my organization. I need:
-- Agent tracing for the Vercel AI SDK call in `src/agent.ts`, with inputs
-and outputs recorded.
+- Agent tracing for the Vercel AI SDK call in `src/agent.ts`.
 - One transaction per Slack message handled in `src/app.ts`, so each
-message shows as one trace with the model calls and tool calls inside it.
+message shows as one trace with the model call and its tool calls inside it.
 - The Slack thread timestamp set as the conversation id, and the Slack
 user id set as the Sentry user.
-- Database spans for the Postgres queries under `../storefront/lib/db`.
-- Full trace sampling for the workshop.
-Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
-what these points need.
+- Prompts and replies recorded only when the message is in a public or
+private channel, never in a direct message.
+- One span per warehouse query in `src/analytics/tools.ts`, tagged with the
+metric name, the date range length, and the row count, so a direct message
+trace still shows something useful without the prompt and the reply.
+- The release read from `SENTRY_RELEASE`, and full trace sampling for the
+workshop.
+Use the 11.0 release of the Sentry SDK. Add only what these points need.
 The process starts with `npm run dev`. When done, start it, wait for the
 "connected over Socket Mode" line, and tell me how to confirm the first
 trace arrived.

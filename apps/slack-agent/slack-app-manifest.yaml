@@ -1,24 +1,24 @@
 display_information:
-  name: Acme Shopping Assistant
+  name: Lighthouse Analytics
 features:
   bot_user:
-    display_name: acme-shop
+    display_name: lighthouse-analytics
     always_online: true
   app_home:
     home_tab_enabled: false
     messages_tab_enabled: true
     messages_tab_read_only_enabled: false
   agent_view:
-    agent_description: "Answers questions about Acme Store products, orders, and refunds."
+    agent_description: "Answers product analytics questions from the team's metrics warehouse."
     suggested_prompts:
-      - title: "Where is my order?"
-        message: "Where is my latest order?"
-      - title: "Find a hoodie"
-        message: "Show me hoodies under $60"
-      - title: "Loyalty points"
-        message: "How many loyalty points do I have?"
-      - title: "Refund an order"
-        message: "Can I get a refund for order 1029?"
+      - title: "Signups last week"
+        message: "How did signups do last week compared with the week before?"
+      - title: "Checkout conversion"
+        message: "What is checkout conversion by device over the last 30 days?"
+      - title: "Top movers"
+        message: "What changed the most in page views by path this month?"
+      - title: "Error rate by release"
+        message: "Compare error rate across the last two releases."
 oauth_config:
   scopes:
     bot:
