@@ -102,20 +102,45 @@ Ask your agent:
 
 ## Step 4. Ship the regression
 
-The presenter tags a release and applies
-`apps/slack-agent/regressions/drop-prompt-cache.patch`, then restarts the bot
-and sends three more messages in the same thread.
+The regression ships the way regressions ship: as a merged pull request. The
+presenter merges the branch `lab4-drop-prompt-cache` into `main`, tags a
+release from the new `main` commit, restarts the bot on it, and sends three
+more messages in the same thread. Working alone, apply
+`apps/slack-agent/regressions/drop-prompt-cache.patch` instead and tag a
+release from your own commit.
 
 Ask:
 
 > Compare cached input tokens per model call between the last two releases of
 > the slack-agent project.
 
-Before the patch, the second and later turns in a thread show cached input
-tokens. After it, they show zero, because the patch removes the cache
+Before the regression, the second and later turns in a thread show cached
+input tokens. After it, they show zero, because the change removes the cache
 breakpoint on the system prompt: Anthropic no longer has anything to match
 against. The cost per conversation rises several times. This is the
 regression from the talk, now in your own project.
+
+## Step 5. Let an agent fix it
+
+The monitor "Cache misses on model calls" counts model calls that read zero
+cached tokens and opens an issue when it sees more than two in ten minutes.
+That issue is the trigger for a Cursor automation named "Sentry issue to fix
+PR". The automation is generic on purpose, so you can copy it:
+
+- Trigger: a Sentry internal integration posts every issue event in the org
+  to the automation's webhook. If your Cursor account is connected to your
+  Sentry org, use Cursor's own Sentry trigger instead and pick the project.
+- Repository and branch: this repo, `main`.
+- Tools: Open Pull Request and the Sentry MCP, so the agent reads the issue
+  and the trace the way you did in Lab 3.
+- Prompt: act only on created issues. Read the issue and the release it first
+  appeared in. Map the Sentry project to the app directory. Diff that release
+  against the previous one for the same app. Make the smallest fix. Open one
+  pull request against `main` that links the issue. Never merge. Stop if a
+  pull request for the issue already exists or the cause is unclear.
+
+The pull request it opens restores the one line. A human reviews and merges
+it, and `main` is healthy again.
 
 ## What you learned
 

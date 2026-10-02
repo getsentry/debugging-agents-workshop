@@ -7,3 +7,7 @@ Patches that reintroduce a bug for a lab exercise.
   every turn. Apply from the repository root with
   `git apply apps/slack-agent/regressions/drop-prompt-cache.patch`, so
   `git apply` finds the `apps/slack-agent/...` paths.
+
+In the presenter flow, the same change ships as a pull request from the
+branch `lab4-drop-prompt-cache` into `main`, and the Cursor automation
+"Sentry issue to fix PR" restores it with a pull request of its own.
