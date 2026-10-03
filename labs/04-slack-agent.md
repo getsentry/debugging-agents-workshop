@@ -120,27 +120,32 @@ breakpoint on the system prompt: Anthropic no longer has anything to match
 against. The cost per conversation rises several times. This is the
 regression from the talk, now in your own project.
 
-## Step 5. Let an agent fix it
+## Step 5. What picks the issue up
 
 The monitor "Cache misses on model calls" counts model calls that read zero
 cached tokens and opens an issue when it sees more than two in ten minutes.
-That issue is the trigger for a Cursor automation named "Sentry issue to fix
-PR". The automation is generic on purpose, so you can copy it:
+Nothing threw. A number crossed a line, and the issue links the traces that
+prove it. From here, four kinds of automation can take over. Each one reads
+the trace first.
 
-- Trigger: a Sentry internal integration posts every issue event in the org
-  to the automation's webhook. If your Cursor account is connected to your
-  Sentry org, use Cursor's own Sentry trigger instead and pick the project.
-- Repository and branch: this repo, `main`.
-- Tools: Open Pull Request and the Sentry MCP, so the agent reads the issue
-  and the trace the way you did in Lab 3.
-- Prompt: act only on created issues. Read the issue and the release it first
-  appeared in. Map the Sentry project to the app directory. Diff that release
-  against the previous one for the same app. Make the smallest fix. Open one
-  pull request against `main` that links the issue. Never merge. Stop if a
-  pull request for the issue already exists or the cause is unclear.
+- Seer Autofix. Built into Sentry, enabled per project. It runs on issues
+  with 10 or more events in 14 days and stops at root cause, plan, or a
+  drafted pull request, or hands off to Claude Code or Cursor. It never
+  merges. https://sentry.io/cookbook/self-healing-workflow-seer/
+- Cursor automation. A native Sentry trigger (issue created, updated, or any
+  event) filtered by project and environment, with the Sentry MCP and Open
+  Pull Request as tools. One pull request, and a human merges.
+  https://sentry.io/cookbook/regressed-issue-to-pr-cursor/
+- Claude Routine. A saved Claude Code run in the cloud, started by a
+  schedule, an HTTP call, or a GitHub event. Point a Sentry webhook at its
+  URL and give it the Sentry MCP as a connector.
+  https://sentry.io/cookbook/automate-ai-agent-triage-claude-routines/
+- Seer in Slack. The alert posts to a channel. Reply `@sentry` in its thread
+  and the Seer agent answers with the issue, the trace, and the replay. The
+  same notification can start Autofix.
+  https://sentry.io/cookbook/fix-sentry-issues-from-slack/
 
-The pull request it opens restores the one line. A human reviews and merges
-it, and `main` is healthy again.
+Lab 6 ends on the same list.
 
 ## What you learned
 
