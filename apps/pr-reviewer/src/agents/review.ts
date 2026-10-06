@@ -79,18 +79,34 @@ export function ReviewLead() {
 		description: 'Run the demo-pr test suite and return its output',
 		input: v.object({}),
 		async run({ log }) {
-			let output: string;
+			const reportPath = '/tmp/vitest.json';
 			let exitCode = 0;
 			try {
-				const { stdout, stderr } = await execFileAsync('npm', ['test'], {
-					cwd: 'fixtures/demo-pr',
-					maxBuffer: 64 * 1024 * 1024,
-				});
-				output = `${stdout}\n${stderr}`;
+				await execFileAsync(
+					'npx',
+					['vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`],
+					{ cwd: 'fixtures/demo-pr', maxBuffer: 64 * 1024 * 1024 },
+				);
 			} catch (error) {
-				const failure = error as { code?: number; stdout?: string; stderr?: string };
+				const failure = error as { code?: number };
 				exitCode = typeof failure.code === 'number' ? failure.code : 1;
-				output = `Tests failed (exit ${exitCode})\n${failure.stdout ?? ''}\n${failure.stderr ?? ''}`;
+			}
+			let output: string;
+			try {
+				const report = JSON.parse(await readFile(reportPath, 'utf8'));
+				const failures = report.testResults.flatMap(
+					(file: { name: string; assertionResults: { status: string; fullName: string }[] }) =>
+						file.assertionResults
+							.filter((test) => test.status === 'failed')
+							.map((test) => `${path.basename(file.name)}: ${test.fullName}`),
+				);
+				output = JSON.stringify({
+					passed: report.numPassedTests,
+					failed: report.numFailedTests,
+					failures,
+				});
+			} catch {
+				output = `Tests failed to run (exit ${exitCode})`;
 			}
 			log.info('tests finished', { exitCode, bytes: output.length });
 			return output;
