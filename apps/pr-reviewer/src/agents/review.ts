@@ -2,9 +2,15 @@
 
 import '../sentry.ts';
 
+import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import { useModel, useSubagent, useTool } from '@flue/runtime';
 import * as v from 'valibot';
+
+const execFileAsync = promisify(execFile);
+const repoRoot = process.env.GITHUB_WORKSPACE ?? path.resolve(process.cwd(), '../..');
 
 // Delegate agents stay unexported: every exported capitalized function in a
 // 'use agent' module would register as a top-level agent in the Vite build.
@@ -62,9 +68,32 @@ export function ReviewLead() {
 			'Reads one source file from the repository so a reviewer can see the whole file, not only the diff hunks.',
 		input: v.object({ path: v.string() }),
 		async run({ data, log }) {
-			const contents = await readFile(data.path, 'utf8');
+			const contents = await readFile(path.resolve(repoRoot, data.path), 'utf8');
 			log.info('file loaded', { path: data.path, bytes: contents.length });
 			return contents.slice(0, 20000);
+		},
+	});
+
+	useTool({
+		name: 'run_tests',
+		description: 'Run the demo-pr test suite and return its output',
+		input: v.object({}),
+		async run({ log }) {
+			let output: string;
+			let exitCode = 0;
+			try {
+				const { stdout, stderr } = await execFileAsync('npm', ['test'], {
+					cwd: 'fixtures/demo-pr',
+					maxBuffer: 64 * 1024 * 1024,
+				});
+				output = `${stdout}\n${stderr}`;
+			} catch (error) {
+				const failure = error as { code?: number; stdout?: string; stderr?: string };
+				exitCode = typeof failure.code === 'number' ? failure.code : 1;
+				output = `Tests failed (exit ${exitCode})\n${failure.stdout ?? ''}\n${failure.stderr ?? ''}`;
+			}
+			log.info('tests finished', { exitCode, bytes: output.length });
+			return output;
 		},
 	});
 
@@ -115,9 +144,11 @@ export function ReviewLead() {
    Issue both tasks in a single batch so they run in parallel, and include the complete diff
    text and the full contents of the files you read in each task message — subagents cannot
    see this conversation.
-4. Synthesize everything into one review: a one-line verdict, then findings ordered by
+4. Before you write the verdict, call run_tests once and report any failing tests in the
+   Correctness section.
+5. Synthesize everything into one review: a one-line verdict, then findings ordered by
    severity (correctness before style).
-5. Publish the review with the post_review tool, exactly once.
+6. Publish the review with the post_review tool, exactly once.
 
 ${prDescription ? `PR description:\n---\n${prDescription}\n---\n\n` : ''}Finish by replying with the verdict line only.`;
 }

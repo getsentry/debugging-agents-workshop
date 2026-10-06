@@ -32,6 +32,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - run: npm ci
+        working-directory: apps/pr-reviewer/fixtures/demo-pr
       - name: Export the PR diff
         run: git diff origin/${{ github.base_ref }}...HEAD > fixtures/latest.diff
       - name: Run the review agent
