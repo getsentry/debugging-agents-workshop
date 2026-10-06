@@ -41,4 +41,12 @@ describe('pointsFor', () => {
   it('returns a whole number', () => {
     expect(Number.isInteger(pointsFor(777))).toBe(true);
   });
+
+  it('awards 2 points per dollar to gold members', () => {
+    expect(pointsFor(10_000, 'gold')).toBe(200);
+  });
+
+  it('defaults to the standard tier', () => {
+    expect(pointsFor(10_000, 'standard')).toBe(pointsFor(10_000));
+  });
 });
