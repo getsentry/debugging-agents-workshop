@@ -21,6 +21,7 @@ const AI_PROVIDER_INTEGRATIONS = new Set([
 
 function remapToolPayload(span: Parameters<NonNullable<Sentry.NodeOptions['beforeSendSpan']>>[0]) {
 	const attributes = span.attributes;
+	if (attributes && benchAttributes) Object.assign(attributes, benchAttributes);
 	if (attributes) {
 		for (const kind of ['arguments', 'result'] as const) {
 			const raw = attributes[`flue.tool.call.${kind}`];
@@ -34,6 +35,18 @@ function remapToolPayload(span: Parameters<NonNullable<Sentry.NodeOptions['befor
 	}
 	return span;
 }
+
+// Benchmark runs (scripts/bench) stamp every span so runs can be grouped in Sentry.
+// Scope tags do not reach span attributes, so the values go in beforeSendSpan.
+const benchAttributes = process.env.BENCH_ID
+	? {
+			'bench.id': process.env.BENCH_ID,
+			'bench.fixture': process.env.BENCH_FIXTURE ?? '',
+			'bench.variant': process.env.BENCH_VARIANT ?? '',
+			'bench.iteration': process.env.BENCH_ITERATION ?? '',
+			'bench.run': process.env.BENCH_RUN ?? '',
+		}
+	: undefined;
 
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,

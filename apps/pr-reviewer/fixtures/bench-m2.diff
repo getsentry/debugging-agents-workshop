@@ -1,0 +1,358 @@
+diff --git a/apps/slack-agent/slack-app-manifest.yaml b/apps/slack-agent/slack-app-manifest.yaml
+index 2b83b99..8f9ff30 100644
+--- a/apps/slack-agent/slack-app-manifest.yaml
++++ b/apps/slack-agent/slack-app-manifest.yaml
+@@ -4,10 +4,18 @@ features:
+   bot_user:
+     display_name: acme-shop
+     always_online: true
++  app_home:
++    home_tab_enabled: false
++    messages_tab_enabled: true
++    messages_tab_read_only_enabled: false
++  assistant_view:
++    assistant_description: "Answers questions about Acme Store products, orders, and refunds."
++    suggested_prompts: []
+ oauth_config:
+   scopes:
+     bot:
+       - app_mentions:read
++      - assistant:write
+       - channels:history
+       - chat:write
+       - groups:history
+@@ -18,9 +26,11 @@ settings:
+   event_subscriptions:
+     bot_events:
+       - app_mention
++      - assistant_thread_context_changed
++      - assistant_thread_started
+       - message.im
+   interactivity:
+-    is_enabled: false
++    is_enabled: true
+   org_deploy_enabled: false
+   socket_mode_enabled: true
+   token_rotation_enabled: false
+diff --git a/apps/slack-agent/src/agent.ts b/apps/slack-agent/src/agent.ts
+index d47a779..8d9ae45 100644
+--- a/apps/slack-agent/src/agent.ts
++++ b/apps/slack-agent/src/agent.ts
+@@ -1,5 +1,5 @@
+ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+-import { generateText, isStepCount } from "ai";
++import { isStepCount, streamText } from "ai";
+ import type { ModelMessage } from "ai";
+ import { PROMPT_CACHE_OPTIONS, STORE_POLICIES } from "lib/ai/instructions";
+ import { resolveModel } from "lib/ai/models";
+@@ -21,18 +21,28 @@ const assistantInstructions =
+   "it with the order id. If refundOrder errors, apologize briefly and say " +
+   "the team has been notified; never retry it. Tool results do not render " +
+   "as cards here, so summarize them yourself: name each product and its " +
+-  "price, or each order's id, status, and total. Prices are in USD. Format " +
+-  "for Slack, not markdown - use *asterisks* for bold and never headings. " +
++  "price, or each order's id, status, and total. Prices are in USD. " +
++  "Format with standard markdown: **bold** for emphasis and short bullet " +
++  "lists, never headings or tables. " +
+   "Be concise and friendly.";
+ 
+-export async function answer({
++// Labels shown next to each tool's task_update chunk while it runs, so
++// Slack's task timeline reads like a sentence instead of a function name.
++export const TOOL_TITLES: Record<string, string> = {
++  searchProducts: "Searching the catalog",
++  getProduct: "Looking up the product",
++  getAccountInfo: "Checking the account",
++  refundOrder: "Processing the refund",
++};
++
++export function streamAnswer({
+   messages,
+   conversationId,
+ }: {
+   messages: ModelMessage[];
+   conversationId: string;
+-}): Promise<string> {
+-  const result = await generateText({
++}) {
++  return streamText({
+     model: openrouter.chat(resolveModel()),
+     instructions: {
+       role: "system",
+@@ -47,6 +57,4 @@ export async function answer({
+       functionId: "slack-shopping-assistant",
+     },
+   });
+-
+-  return result.text;
+ }
+diff --git a/apps/slack-agent/src/app.ts b/apps/slack-agent/src/app.ts
+index 2274d37..a21a8c0 100644
+--- a/apps/slack-agent/src/app.ts
++++ b/apps/slack-agent/src/app.ts
+@@ -1,9 +1,10 @@
+-import { App } from "@slack/bolt";
+-import type { SayFn } from "@slack/bolt";
+-import type { AppMentionEvent, MessageEvent } from "@slack/types";
++import { App, Assistant } from "@slack/bolt";
++import type { SayFn, SayStreamFn, SetStatusFn } from "@slack/bolt";
++import type { BlockFeedbackButtonsAction } from "@slack/bolt";
++import type { AppMentionEvent, KnownBlock, MessageEvent } from "@slack/types";
+ import type { WebClient } from "@slack/web-api";
+ import type { ModelMessage } from "ai";
+-import { answer } from "./agent";
++import { streamAnswer, TOOL_TITLES } from "./agent";
+ 
+ const required = [
+   "SLACK_BOT_TOKEN",
+@@ -21,36 +22,143 @@ for (const name of required) {
+   }
+ }
+ 
++const ERROR_REPLY = "The shopping assistant hit an error. Please try again.";
++
++const FEEDBACK_BLOCK: KnownBlock[] = [
++  {
++    type: "context",
++    elements: [
++      {
++        type: "mrkdwn",
++        text: "AI-generated. Check order details before you act on them.",
++      },
++    ],
++  },
++  {
++    type: "context_actions",
++    elements: [
++      {
++        type: "feedback_buttons",
++        action_id: "feedback",
++        positive_button: {
++          text: { type: "plain_text", text: "Good" },
++          value: "positive",
++        },
++        negative_button: {
++          text: { type: "plain_text", text: "Bad" },
++          value: "negative",
++        },
++      },
++    ],
++  },
++];
++
++// Shopping-flavored status lines shown while the assistant is thinking.
++const LOADING_MESSAGES = [
++  "Checking the shelves...",
++  "Reading the order book...",
++  "Counting loyalty points...",
++  "Fetching product details...",
++];
++
+ const app = new App({
+   token: process.env.SLACK_BOT_TOKEN,
+   appToken: process.env.SLACK_APP_TOKEN,
+   socketMode: true,
+ });
+ 
+-const ERROR_REPLY = "The shopping assistant hit an error. Please try again.";
++async function respond({
++  client,
++  event,
++  text,
++  sayStream,
++  setStatus,
++  say,
++}: {
++  client: WebClient;
++  event: { channel: string; ts: string; thread_ts?: string; user?: string };
++  text: string;
++  sayStream: SayStreamFn;
++  setStatus: SetStatusFn;
++  say: SayFn;
++}) {
++  const conversationId = event.thread_ts ?? event.ts;
++  let stream: ReturnType<SayStreamFn> | undefined;
++
++  try {
++    await setStatus({
++      status: "is thinking...",
++      loading_messages: LOADING_MESSAGES,
++    }).catch((error) => console.warn("setStatus failed", error));
++
++    const messages = await loadThread({ client, event, conversationId, text });
++
++    stream = sayStream({ task_display_mode: "timeline" });
++
++    const taskStatus = {
++      "tool-call": "in_progress",
++      "tool-result": "complete",
++      "tool-error": "error",
++    } as const;
++
++    for await (const part of streamAnswer({ messages, conversationId })
++      .fullStream) {
++      switch (part.type) {
++        case "text-delta":
++          await stream.append({ markdown_text: part.text });
++          break;
++        case "tool-call":
++        case "tool-result":
++        case "tool-error":
++          await stream.append({
++            chunks: [
++              {
++                type: "task_update",
++                id: part.toolCallId,
++                title: TOOL_TITLES[part.toolName] ?? part.toolName,
++                status: taskStatus[part.type],
++              },
++            ],
++          });
++          break;
++        case "error":
++          throw part.error;
++        default:
++          break;
++      }
++    }
++
++    await stream.stop({ blocks: FEEDBACK_BLOCK });
++  } catch (error) {
++    await setStatus("").catch((statusError) =>
++      console.warn("setStatus failed", statusError),
++    );
++    if (stream) {
++      await stream.stop({ markdown_text: ERROR_REPLY });
++    } else {
++      await say({ text: ERROR_REPLY, thread_ts: conversationId });
++    }
++    throw error;
++  }
++}
+ 
+ app.event(
+   "app_mention",
+   async ({
+     event,
+     say,
++    sayStream,
++    setStatus,
+     client,
+   }: {
+     event: AppMentionEvent;
+     say: SayFn;
++    sayStream: SayStreamFn;
++    setStatus: SetStatusFn;
+     client: WebClient;
+   }) => {
+-    const conversationId = event.thread_ts ?? event.ts;
+     const text = stripMention(event.text ?? "");
+-
+-    try {
+-      const messages = await loadThread({ client, event, conversationId, text });
+-      const reply = await answer({ messages, conversationId });
+-      await say({ text: reply, thread_ts: conversationId });
+-    } catch (error) {
+-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
+-      throw error;
+-    }
++    await respond({ client, event, text, sayStream, setStatus, say });
+   },
+ );
+ 
+@@ -59,10 +167,14 @@ app.event(
+   async ({
+     event,
+     say,
++    sayStream,
++    setStatus,
+     client,
+   }: {
+     event: MessageEvent;
+     say: SayFn;
++    sayStream: SayStreamFn;
++    setStatus: SetStatusFn;
+     client: WebClient;
+   }) => {
+     // Only handle plain DM messages: skip subtyped events (edits, deletes,
+@@ -72,20 +184,63 @@ app.event(
+     if (event.subtype !== undefined) return;
+     if (event.channel_type !== "im" || event.bot_id) return;
+ 
+-    const conversationId = event.thread_ts ?? event.ts;
+     const text = stripMention(event.text ?? "");
++    await respond({ client, event, text, sayStream, setStatus, say });
++  },
++);
+ 
+-    try {
+-      const messages = await loadThread({ client, event, conversationId, text });
+-      const reply = await answer({ messages, conversationId });
+-      await say({ text: reply, thread_ts: conversationId });
+-    } catch (error) {
+-      await say({ text: ERROR_REPLY, thread_ts: conversationId });
+-      throw error;
++app.action<BlockFeedbackButtonsAction>(
++  "feedback",
++  async ({ ack, payload, body, client }) => {
++    await ack();
++    console.log("feedback", payload.value, "for message", body.message?.ts);
++
++    if (body.channel && body.user) {
++      await client.chat.postEphemeral({
++        channel: body.channel.id,
++        user: body.user.id,
++        text: "Thanks for the feedback.",
++        thread_ts: body.message?.thread_ts ?? body.message?.ts,
++      });
+     }
+   },
+ );
+ 
++// Both this Assistant and the plain "message" handler above exist because
++// Slack routes DM threads through the Assistant middleware only when the
++// app's "Agents & AI Apps" feature is turned on; the "message" handler still
++// serves top-level DMs when that feature is off.
++const assistant = new Assistant({
++  threadStarted: async ({ say, setSuggestedPrompts }) => {
++    await say("Hi! Ask me about products, orders, or refunds.");
++    await setSuggestedPrompts({
++      title: "Try one of these",
++      prompts: [
++        { title: "Where is my order?", message: "Where is my latest order?" },
++        { title: "Find a hoodie", message: "Show me hoodies under $60" },
++        {
++          title: "Loyalty points",
++          message: "How many loyalty points do I have?",
++        },
++        {
++          title: "Refund an order",
++          message: "Can I get a refund for order 1029?",
++        },
++      ],
++    });
++  },
++  userMessage: async ({ client, event, say, sayStream, setStatus, setTitle }) => {
++    if (event.subtype !== undefined || event.bot_id) return;
++    if (!event.text) return;
++
++    const text = stripMention(event.text);
++    await setTitle(text).catch((error) => console.warn("setTitle failed", error));
++    await respond({ client, event, text, sayStream, setStatus, say });
++  },
++});
++
++app.assistant(assistant);
++
+ // Mentions arrive as "<@U0123> show me the shoes collection" - strip the
+ // leading mention so the model sees a plain question.
+ function stripMention(text: string): string {
+@@ -95,7 +250,7 @@ function stripMention(text: string): string {
+ // Gives the agent thread memory: without a thread_ts the event is the start
+ // of a new thread, so its own text is the whole history. With a thread_ts,
+ // replay the thread from Slack so follow-ups like "refund that order" carry
+-// the context a fresh call to answer() would otherwise lose.
++// the context a fresh call to streamAnswer() would otherwise lose.
+ async function loadThread({
+   client,
+   event,

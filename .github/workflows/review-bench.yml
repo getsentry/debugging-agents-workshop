@@ -1,0 +1,51 @@
+# Benchmark run for the PR reviewer: one review of a fixture diff, no PR comment.
+# Dispatch it with scripts/bench/run-actions.mjs.
+name: Review Bench
+
+on:
+  workflow_dispatch:
+    inputs:
+      bench_id:
+        description: Benchmark id, the bench.id tag in Sentry
+        required: true
+      fixture:
+        description: Fixture name in apps/pr-reviewer/fixtures (without .diff)
+        required: true
+      variant:
+        description: stock or fanout
+        required: true
+        default: stock
+      iteration:
+        description: Iteration number
+        required: true
+        default: "1"
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/pr-reviewer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Apply the fanout regression
+        if: inputs.variant == 'fanout'
+        working-directory: .
+        run: git apply apps/pr-reviewer/regressions/per-file-fanout.patch
+      - name: Run the review agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          BENCH_ID: ${{ inputs.bench_id }}
+          BENCH_FIXTURE: ${{ inputs.fixture }}
+          BENCH_VARIANT: ${{ inputs.variant }}
+          BENCH_ITERATION: ${{ inputs.iteration }}
+          BENCH_RUN: ${{ github.run_id }}
+        run: npx flue run src/agents/review.ts --message 'Review the diff at fixtures/${{ inputs.fixture }}.diff and post your review.'
