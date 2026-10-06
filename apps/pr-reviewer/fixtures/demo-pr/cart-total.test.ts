@@ -63,4 +63,13 @@ describe('cartTotal', () => {
   it('handles large quantities', () => {
     expect(cartTotal([{ price: 3, qty: 1_000_000 }])).toBe(3_000_000);
   });
+
+  it('rounds each line to whole cents', () => {
+    expect(
+      cartTotal([
+        { price: 33.3, qty: 3 },
+        { price: 10.4, qty: 1 },
+      ]),
+    ).toBe(110);
+  });
 });

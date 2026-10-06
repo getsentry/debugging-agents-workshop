@@ -4,7 +4,7 @@ export function cartTotal(items: { price: number; qty: number }[]): number {
     if (items[i].qty < 0) {
       throw new RangeError(`Negative quantity for item ${i}`);
     }
-    total += items[i].price * items[i].qty;
+    total += Math.round(items[i].price * items[i].qty);
   }
   return total;
 }
