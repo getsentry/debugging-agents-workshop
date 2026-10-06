@@ -3,7 +3,8 @@
 import '../sentry.ts';
 
 import { execFile } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { useModel, useSubagent, useTool } from '@flue/runtime';
@@ -76,15 +77,33 @@ export function ReviewLead() {
 
 	useTool({
 		name: 'run_tests',
-		description: 'Run the demo-pr test suite and return its output',
+		description: 'Run the demo-pr tests related to the files in the diff and return a summary',
 		input: v.object({}),
 		async run({ log }) {
-			const reportPath = '/tmp/vitest.json';
+			const noRelatedTests = JSON.stringify({ passed: 0, failed: 0, ran: 0, note: 'no related tests' });
+			const diff = await readFile('fixtures/latest.diff', 'utf8').catch(() => '');
+			const changedFiles = [...diff.matchAll(/^diff --git a\/(\S+) b\/\S+$/gm)].map((match) =>
+				path.resolve(repoRoot, match[1]),
+			);
+			if (changedFiles.length === 0) {
+				log.info('tests finished', { exitCode: 0, bytes: noRelatedTests.length });
+				return noRelatedTests;
+			}
+			const reportPath = path.join(tmpdir(), 'vitest.json');
+			await rm(reportPath, { force: true });
 			let exitCode = 0;
 			try {
 				await execFileAsync(
 					'npx',
-					['vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`],
+					[
+						'vitest',
+						'related',
+						...changedFiles,
+						'--run',
+						'--passWithNoTests',
+						'--reporter=json',
+						`--outputFile=${reportPath}`,
+					],
 					{ cwd: 'fixtures/demo-pr', maxBuffer: 64 * 1024 * 1024 },
 				);
 			} catch (error) {
@@ -100,13 +119,17 @@ export function ReviewLead() {
 							.filter((test) => test.status === 'failed')
 							.map((test) => `${path.basename(file.name)}: ${test.fullName}`),
 				);
-				output = JSON.stringify({
-					passed: report.numPassedTests,
-					failed: report.numFailedTests,
-					failures,
-				});
+				output =
+					report.testResults.length === 0
+						? noRelatedTests
+						: JSON.stringify({
+								passed: report.numPassedTests,
+								failed: report.numFailedTests,
+								ran: report.testResults.length,
+								failures,
+							});
 			} catch {
-				output = `Tests failed to run (exit ${exitCode})`;
+				output = exitCode === 0 ? noRelatedTests : `Tests failed to run (exit ${exitCode})`;
 			}
 			log.info('tests finished', { exitCode, bytes: output.length });
 			return output;
