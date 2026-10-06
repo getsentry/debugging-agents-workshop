@@ -26,12 +26,20 @@ describe('canRefund', () => {
     expect(canRefund(daysAgo(30), now)).toBe(true);
   });
 
-  it('refuses a refund one millisecond past 30 days', () => {
-    expect(canRefund(new Date(daysAgo(30).getTime() - 1), now)).toBe(false);
+  it('allows a refund during the 2-day grace period', () => {
+    expect(canRefund(daysAgo(31), now)).toBe(true);
   });
 
-  it('refuses a refund after 31 days', () => {
-    expect(canRefund(daysAgo(31), now)).toBe(false);
+  it('allows a refund exactly 32 days after delivery', () => {
+    expect(canRefund(daysAgo(32), now)).toBe(true);
+  });
+
+  it('refuses a refund one millisecond past the grace period', () => {
+    expect(canRefund(new Date(daysAgo(32).getTime() - 1), now)).toBe(false);
+  });
+
+  it('refuses a refund after 33 days', () => {
+    expect(canRefund(daysAgo(33), now)).toBe(false);
   });
 
   it('refuses a refund after a year', () => {

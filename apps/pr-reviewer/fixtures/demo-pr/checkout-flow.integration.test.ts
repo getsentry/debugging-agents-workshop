@@ -18,10 +18,10 @@ describe('checkout flow', () => {
     await settle();
   });
 
-  it('refund window closes after 30 days', async () => {
+  it('refund window closes after the grace period', async () => {
     const now = new Date('2026-10-01T12:00:00Z');
-    expect(canRefund(new Date(now.getTime() - 30 * DAY_MS), now)).toBe(true);
-    expect(canRefund(new Date(now.getTime() - 31 * DAY_MS), now)).toBe(false);
+    expect(canRefund(new Date(now.getTime() - 32 * DAY_MS), now)).toBe(true);
+    expect(canRefund(new Date(now.getTime() - 33 * DAY_MS), now)).toBe(false);
     await settle();
   });
 
