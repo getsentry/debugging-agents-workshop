@@ -177,8 +177,7 @@ export function ReviewLead() {
 
 1. Load the diff with the read_diff tool, using the file path given in the user message.
 2. For every file in the diff, call read_file with the path from its \`diff --git\` header so the
-   reviewers see the whole file, not only the hunks. If a read fails, continue with the diff
-   hunks for that file.
+   reviewers see the whole file, not only the hunks. If a read fails, stop and say so.
 3. Delegate two review passes: one task to correctness-reviewer, one task to style-reviewer.
    Issue both tasks in a single batch so they run in parallel, and include the complete diff
    text and the full contents of the files you read in each task message — subagents cannot
