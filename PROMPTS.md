@@ -118,48 +118,18 @@ name, the conversation id, the user, and every gen_ai and tool span with
 its token counts.
 ```
 
-### Step 4. Ship the regression
+### Step 3. Ship the slow tests
 
 ```text
-Compare cached input tokens per model call between the last two releases of
-the slack-agent project.
+Show the chat spans of the latest pr-reviewer run with input tokens, cached
+input tokens, and start time. Which call read nothing from the cache, and
+what ran right before it?
 ```
 
-## Lab 5. PR reviewer
-
-Directory: `apps/pr-reviewer`. Full lab: [labs/05-pr-reviewer.md](labs/05-pr-reviewer.md).
-
-### Step 1. Instrument by prompt
+### Step 4. The fix
 
 ```text
-Instrument this Flue agent with Sentry so every GitHub Actions run produces
-one trace. Create a new Sentry project for it in my organization. I need:
-- Flue's OpenTelemetry spans exported to Sentry, so the lead, both
-subagents, and the tools show as nested gen_ai spans with token counts.
-- The release set to the commit SHA and the environment set to
-`github-actions`, with `local` when I run `npm run demo` on my machine.
-- The repository and pull request number as tags on every span.
-- A flush before the process exits, so the last spans are not lost.
-- Full trace sampling.
-Use the 11.0 release candidate of the Sentry SDK, npm tag `next`. Add only
-what these points need.
-Add the `SENTRY_DSN` secret to `.github/workflows/review.yml`. Then run
-`npm run demo` against `fixtures/sample.diff` and show me the resulting
-trace.
-```
-
-### Step 2. Verify
-
-```text
-Find the latest trace in the pr-reviewer project. Show the lead span, the
-two subagent spans, and the total input tokens for the run.
-```
-
-### Step 4. Ship the regression
-
-```text
-Compare the last two releases of the pr-reviewer project: total input
-tokens, cached input tokens, and the number of subagent spans per run.
+Show the same pull request's latest run. Did the verdict call read the cache?
 ```
 
 ## Lab 6. Alerts and dashboards
