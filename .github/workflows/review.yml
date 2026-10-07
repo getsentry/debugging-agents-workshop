@@ -45,4 +45,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_DESCRIPTION: ${{ github.event.pull_request.body }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          # The run_tests tool can outlive Anthropic's five-minute prompt cache.
+          PI_CACHE_RETENTION: long
         run: npx flue run src/agents/review.ts --message 'Review the diff at fixtures/latest.diff and post your review.'
