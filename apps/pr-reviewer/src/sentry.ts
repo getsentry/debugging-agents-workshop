@@ -43,9 +43,19 @@ function remapFlueAttributes(span: Parameters<NonNullable<Sentry.NodeOptions['be
 				attributes[sentryKey] = attributes[flueKey];
 			}
 		}
+		// Scope tags reach issues but not spans, so the PR identity is copied
+		// onto every span here to allow cost and cache queries per pull request.
+		for (const [key, value] of Object.entries(RUN_ATTRIBUTES)) {
+			attributes[key] ??= value;
+		}
 	}
 	return span;
 }
+
+const RUN_ATTRIBUTES = {
+	'github.repository': process.env.GITHUB_REPOSITORY ?? 'local',
+	'github.pr': process.env.PR_NUMBER ?? 'none',
+};
 
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,
@@ -65,10 +75,7 @@ Sentry.init({
 });
 
 Sentry.setUser({ id: process.env.GITHUB_ACTOR ?? 'local' });
-Sentry.setTags({
-	'github.repository': process.env.GITHUB_REPOSITORY ?? 'local',
-	'github.pr': process.env.PR_NUMBER ?? 'none',
-});
+Sentry.setTags(RUN_ATTRIBUTES);
 
 // Sentry's transport sends every span envelope inside `suppressTracing`, and
 // on Node 22 that suppressed scope leaks into Flue's model-stream callbacks
