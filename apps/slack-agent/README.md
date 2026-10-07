@@ -28,8 +28,9 @@ against the previous period of the same length when asked how something
 ## Data collection
 
 The assistant records its prompts and replies only when the message came
-from a public or private channel - never from a direct message. A DM still
-produces a trace: the root `slack.message` span and, for every warehouse
+from a public channel - never from a private channel or a direct message. It
+asks Slack once per channel whether the channel is private, and if that lookup
+fails it records nothing. A private channel or DM still produces a trace: the root `slack.message` span and, for every warehouse
 query, an `analytics.scan` span with the metric name, the range length, and
 the row count, with a `db` span inside it for the Postgres query, none of
 which need the prompt or the reply to be useful.

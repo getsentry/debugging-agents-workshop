@@ -82,6 +82,30 @@ function startMessageSpan<T>(
   );
 }
 
+type ChannelType = "public" | "private" | "im";
+
+const channelTypes = new Map<string, ChannelType>();
+
+// Slack sends no channel_type with app_mention, so the bot asks once per
+// channel. An unanswered lookup counts as private so nothing is recorded by
+// mistake.
+async function channelTypeOf(
+  client: WebClient,
+  channel: string,
+): Promise<ChannelType> {
+  const known = channelTypes.get(channel);
+  if (known) return known;
+  let type: ChannelType = "private";
+  try {
+    const { channel: info } = await client.conversations.info({ channel });
+    type = info?.is_private ? "private" : "public";
+    channelTypes.set(channel, type);
+  } catch (error) {
+    console.warn("conversations.info failed, treating channel as private", error);
+  }
+  return type;
+}
+
 async function respond({
   client,
   event,
@@ -97,10 +121,10 @@ async function respond({
   sayStream: SayStreamFn;
   setStatus: SetStatusFn;
   say: SayFn;
-  channelType: "im" | "channel";
+  channelType: ChannelType;
 }) {
   const conversationId = event.thread_ts ?? event.ts;
-  const recordContent = channelType !== "im";
+  const recordContent = channelType === "public";
   let stream: ReturnType<SayStreamFn> | undefined;
 
   const run = new AbortController();
@@ -236,8 +260,6 @@ app.event(
     client: WebClient;
   }) => {
     const text = stripMention(event.text ?? "");
-    // Slack sends no channel_type with app_mention, so a mention in a
-    // private channel counts as a channel here too.
     await respond({
       client,
       event,
@@ -245,7 +267,7 @@ app.event(
       sayStream,
       setStatus,
       say,
-      channelType: "channel",
+      channelType: await channelTypeOf(client, event.channel),
     });
   },
 );
