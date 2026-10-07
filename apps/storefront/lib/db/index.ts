@@ -195,8 +195,7 @@ export async function selectOrder(
   return row;
 }
 
-// The demo's planted bug: orders that predate the payments launch (see
-// PAYMENTS in data.ts) have no row here, so a refund of a legacy order fails.
+// Orders placed before the payments launch have no payment row.
 export async function selectPayment(orderId: string): Promise<Payment> {
   const [row] = await db
     .select()
@@ -204,13 +203,7 @@ export async function selectPayment(orderId: string): Promise<Payment> {
     .where(eq(payments.orderId, orderId))
     .limit(1);
 
-  if (!row) {
-    throw new Error(
-      `Order ${orderId} predates the payments launch and has no charge to refund`,
-    );
-  }
-
-  return row;
+  return row as Payment;
 }
 
 export async function selectOrders(

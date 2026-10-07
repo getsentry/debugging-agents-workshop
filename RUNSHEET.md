@@ -67,10 +67,12 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 - **Prompt.** In the chat: "Show me my recent orders", then "Refund order
   1029" (1029 has no payment row; 1036 and 1042 refund fine). Then the two
   lab 3 prompts: diagnose without changing code, then apply the fix.
-- **Code.** `apps/storefront/lib/db/index.ts`, `selectPayment`: the throw for
-  orders that predate payments. `apps/storefront/lib/ai/tools.ts`,
-  `refundOrder`: where the fix lands.
-- **Sentry UI.** Issues: "Order 1029 predates the payments launch". Open the
+- **Code.** `apps/storefront/lib/db/index.ts`, `selectPayment`: returns no
+  row for orders that predate payments. `apps/storefront/lib/ai/tools.ts`,
+  `refundOrder`: reads `chargeId` from that missing row and throws; where the
+  fix lands.
+- **Sentry UI.** Issues: "TypeError: Cannot read properties of undefined
+  (reading 'chargeId')", project debugging-agents-storefront. Open the
   trace from the issue: the `execute_tool refundOrder` span is red, the
   model step after it is green, the reply apologizes. Open the replay from
   the same issue: the user saw only the apology.

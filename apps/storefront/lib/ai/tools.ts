@@ -157,9 +157,6 @@ export function createTools(customerId: string, _conversationId?: string) {
           };
         }
 
-        // selectPayment throws for orders that predate the payments launch —
-        // the demo's planted failure. Nothing catches it here on purpose: the
-        // AI SDK turns the rejection into a tool-error result.
         const payment = await db.selectPayment(orderId);
         const refund = await issueRefund({
           chargeId: payment.chargeId,
