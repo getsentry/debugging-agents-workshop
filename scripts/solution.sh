@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Apply a solution patch to its app and install the dependencies it adds.
 #
-# Usage: ./scripts/solution.sh <storefront|slack-agent|pr-reviewer>
+# Usage: ./scripts/solution.sh <storefront|slack-agent>
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,11 +14,8 @@ case "$app" in
   slack-agent)
     solution_dir="04-slack-agent"
     ;;
-  pr-reviewer)
-    solution_dir="05-pr-reviewer"
-    ;;
   *)
-    echo "Usage: $0 <storefront|slack-agent|pr-reviewer>" >&2
+    echo "Usage: $0 <storefront|slack-agent>" >&2
     exit 1
     ;;
 esac

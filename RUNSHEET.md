@@ -114,44 +114,37 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 
 ## Lab 5. The same agent in GitHub Actions (10 minutes, follow-along)
 
-- **Outcome.** One trace per workflow run with the lead, two subagents, and
-  the `post_review` tool, release set to the commit SHA, environment
-  `github-actions`. The lead's calls read the cached prefix; the subagent
-  calls read nothing. After the fan-out patch, an eight-file pull request
-  runs nine subagents instead of two and costs about eight times the tokens
-  of a one-file one, all of it uncached.
+- **Outcome.** One trace per workflow run with the lead, two subagents, the
+  `run_tests` tool, and the `post_review` tool, release set to the commit
+  SHA, environment `github-actions`. On a pull request that touches
+  `fixtures/demo-pr/cart-total.ts`, `run_tests` runs the integration fixture
+  for about eight minutes, the five-minute prompt cache expires, and the
+  verdict call reads zero cached tokens. With `PI_CACHE_RETENTION: long` in
+  the workflow, the same pull request reads the cache on every call.
 - **Prompt.** The lab 5 prompt (exporter, release, environment, tags,
-  flush), then the verify prompt, then "Compare the last two releases:
-  total input tokens, cached input tokens, and the number of subagent spans
-  per run".
+  flush), then the verify prompt, then "Show the chat spans of the latest
+  run with input tokens, cached input tokens, and start time. Which call
+  read nothing from the cache, and what ran right before it?"
 - **Code.** `src/sentry.ts`: `enableOpenTelemetrySetup: true`,
   `environment` and `release` from the Actions environment, the AI provider
-  integrations filtered out because pi-ai depends on `openai`, and
-  `beforeSendSpan` renaming `flue.tool.call.*` to `gen_ai.tool.call.*`,
+  integrations filtered out because pi-ai depends on `openai`,
+  `beforeSendSpan` renaming `flue.tool.call.*` to `gen_ai.tool.call.*` and
+  Flue's cache-read and cache-write counts to Sentry's
+  `gen_ai.usage.input_tokens.cached` and `.cache_write`,
   `resolveRootContext` keeping both subagents in the lead's trace, and the
   scope reset that stops the SDK transport's tracing suppression from
   leaking into Flue's later spans. `.github/workflows/review.yml`: the two
-  secrets. The flush before exit.
-  Then `apps/pr-reviewer/regressions/per-file-fanout.patch`, applied from
-  the repository root.
-- **Sentry UI.** The trace waterfall. Explore > Spans, `gen_ai.operation.name:chat`
-  with the input, cache read, and cache write columns: the lead's four calls
-  on `sample.diff` read 0, 1339, 2092, and 5463 cached tokens; the two
-  subagent calls read 0. Then the same view grouped by release, and the pull
-  request comment next to it, which looks the same for both runs. Measured
-  locally on 2026-09-18: `sample.diff` is 1 trace, 6 chat spans, 2 subagents,
-  about 19k input tokens; `large.diff` with the fan-out patch is 1 trace,
-  17 chat spans, 12 subagents, 229k input tokens, 105k of them uncached.
-  Measured in GitHub Actions on 2026-09-18 with two eight-file pull
-  requests (#3 stock reviewer, #4 fan-out patch; branches
-  `lab5/baseline-pr` and `lab5/fanout-pr` on base `lab5/instrumented`):
-  stock is 6 chat spans, 3 agent spans, 28.5k input tokens with 13.1k
-  cached, 7k output tokens, and an 80-second job; fan-out is 13 chat spans,
-  10 agent spans, 88k input tokens with 31.7k cached, 30k output tokens,
-  and a 270-second job. Both pull request comments find the same bugs.
+  secrets, then the one-line fix. `src/agents/review.ts`: `run_tests` runs
+  `vitest related` on the changed files inside `fixtures/demo-pr`.
+  `fixtures/demo-pr/checkout-flow.integration.test.ts`: six tests, 80
+  seconds each, on purpose.
+- **Sentry UI.** The trace waterfall with the long `run_tests` span. Explore
+  > Spans, `gen_ai.operation.name:chat` with the input, cached, and cache
+  write columns, sorted by start time. Then the same pull request after the
+  fix. Numbers: to measure on the rerun before the workshop.
 - **Takeaway.** Short-lived process: ask for flush, release, environment.
-  OpenTelemetry frameworks need an exporter prompt. Every fresh subagent
-  conversation is uncached, so compare runs, not spans.
+  OpenTelemetry frameworks need an exporter prompt. A prompt cache has a
+  lifetime; a tool call that outlives it makes the next call pay full price.
 
 ## Lab 6. Alerts and dashboards per critical path (10 minutes, hands-on)
 

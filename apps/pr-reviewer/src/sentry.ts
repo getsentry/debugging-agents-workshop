@@ -19,7 +19,14 @@ const AI_PROVIDER_INTEGRATIONS = new Set([
 	'WorkersAI',
 ]);
 
-function remapToolPayload(span: Parameters<NonNullable<Sentry.NodeOptions['beforeSendSpan']>>[0]) {
+// Flue reports prompt-cache usage under its own names; Sentry's AI views read
+// the `gen_ai.usage.input_tokens.*` names.
+const CACHE_ATTRIBUTES = [
+	['gen_ai.usage.cache_read.input_tokens', 'gen_ai.usage.input_tokens.cached'],
+	['gen_ai.usage.cache_creation.input_tokens', 'gen_ai.usage.input_tokens.cache_write'],
+] as const;
+
+function remapFlueAttributes(span: Parameters<NonNullable<Sentry.NodeOptions['beforeSendSpan']>>[0]) {
 	const attributes = span.attributes;
 	if (attributes) {
 		for (const kind of ['arguments', 'result'] as const) {
@@ -29,6 +36,11 @@ function remapToolPayload(span: Parameters<NonNullable<Sentry.NodeOptions['befor
 					attributes[`gen_ai.tool.call.${kind}`] = raw;
 				}
 				delete attributes[`flue.tool.call.${kind}`];
+			}
+		}
+		for (const [flueKey, sentryKey] of CACHE_ATTRIBUTES) {
+			if (attributes[flueKey] !== undefined && attributes[sentryKey] === undefined) {
+				attributes[sentryKey] = attributes[flueKey];
 			}
 		}
 	}
@@ -49,7 +61,7 @@ Sentry.init({
 			ignoreOutgoingRequests: (url) => url.startsWith('https://openrouter.ai/'),
 		}),
 	],
-	beforeSendSpan: remapToolPayload,
+	beforeSendSpan: remapFlueAttributes,
 });
 
 Sentry.setUser({ id: process.env.GITHUB_ACTOR ?? 'local' });

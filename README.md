@@ -74,7 +74,7 @@ Nobody waits for a prompt to finish. When the room moves on, apply the
 finished instrumentation for the current app and continue:
 
 ```sh
-./scripts/solution.sh storefront    # or slack-agent, pr-reviewer
+./scripts/solution.sh storefront    # or slack-agent
 ```
 
 `solutions/<lab>/` holds each patch and a README that lists what it adds,

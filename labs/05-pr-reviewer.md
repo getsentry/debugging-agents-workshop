@@ -6,8 +6,9 @@
 `apps/pr-reviewer` is a Flue agent that runs in GitHub Actions on every pull
 request. A lead agent reads the diff, sends it to two subagents, one for
 correctness and one for style, merges their findings, and posts one comment
-on the pull request. It runs on Claude Sonnet 5 through OpenRouter and has
-no Sentry.
+on the pull request. Before the verdict it runs the tests the diff touches.
+It runs on Claude Sonnet 5 through OpenRouter. `src/sentry.ts` sends one
+trace per run to Sentry.
 
 What changes compared with the storefront and Slack:
 
@@ -19,9 +20,10 @@ What changes compared with the storefront and Slack:
   attributes for the lead, each subagent, and each tool.
 - The cost driver is tokens per run, not tokens per conversation.
 
-## Step 1. Instrument by prompt
+## Step 1. How it got instrumented
 
-Start your coding agent in `apps/pr-reviewer` and send:
+The prompt that produced `src/sentry.ts`, sent to a coding agent in
+`apps/pr-reviewer`:
 
 > Instrument this Flue agent with Sentry so every GitHub Actions run produces
 > one trace. Create a new Sentry project for it in my organization. I need:
@@ -38,7 +40,7 @@ Start your coding agent in `apps/pr-reviewer` and send:
 > `npm run demo` against `fixtures/sample.diff` and show me the resulting
 > trace.
 
-Watch for:
+What the agent had to get right:
 
 - Whether it finds Flue's OpenTelemetry package or tries to patch the model
   calls by hand. The right answer is a span exporter, not a wrapper.
@@ -49,17 +51,6 @@ Watch for:
   per subagent. The finished result hands the adapter the lead span as the
   root for every child session.
 
-## If your agent is still running
-
-Switch to the finished result and continue:
-
-```sh
-./scripts/solution.sh pr-reviewer
-```
-
-Set `SENTRY_DSN` in `apps/pr-reviewer/.env.local` and as a repository secret,
-then continue with Step 2.
-
 ## Step 2. Verify
 
 Ask:
@@ -67,31 +58,42 @@ Ask:
 > Find the latest trace in the pr-reviewer project. Show the lead span, the
 > two subagent spans, and the total input tokens for the run.
 
-You must see one root span for the run, two subagent spans under it, and a
-`post_review` tool span at the end.
+You must see one root span for the run, two subagent spans under it, a
+`run_tests` tool span, and a `post_review` tool span at the end.
 
-## Step 3. Ship the regression
+## Step 3. Ship the slow tests
 
-First look at the cache columns of the run from Step 2. The lead's second,
-third, and fourth calls read the cached prefix of the call before them. The
-two subagent calls read nothing: each subagent starts a fresh conversation
-with the full diff, so the diff is paid at the uncached input price once per
-subagent.
+First look at the cache columns of the run from Step 2. The lead's second and
+later calls read the cached prefix of the call before them: the system prompt,
+the tool list, and the conversation so far. pi-ai, the model client under
+Flue, marks that prefix for caching on every call, and OpenRouter forwards it
+to Anthropic's prompt cache. The cache lives five minutes.
 
-The presenter applies `apps/pr-reviewer/regressions/per-file-fanout.patch`
-from the repository root. The lead now sends one correctness task per changed
-file, each with the full diff. The presenter opens a pull request that
-touches eight files with the patch in it; the workflow runs the patched
-reviewer on that pull request.
+The presenter opens a pull request that changes
+`fixtures/demo-pr/cart-total.ts`. The lead reads the diff, delegates the two
+review passes, then calls `run_tests`. That file is imported by
+`checkout-flow.integration.test.ts`, a fixture whose six tests each wait
+80 seconds, so the tool call runs about eight minutes. When the lead asks for
+the verdict, the five-minute cache has expired. The verdict call pays the full
+uncached input price for a prefix the run already paid for once.
 
 Ask:
 
-> Compare the last two releases of the pr-reviewer project: total input
-> tokens, cached input tokens, and the number of subagent spans per run.
+> Show the chat spans of the latest pr-reviewer run with input tokens, cached
+> input tokens, and start time. Which call read nothing from the cache, and
+> what ran right before it?
 
-The eight-file run has nine subagent spans instead of two, and the extra
-input tokens are all uncached. Nobody sees this in the pull request comment.
-It is only visible in the trace.
+The pull request comment looks the same as on a fast run. Only the trace shows
+the eight-minute `run_tests` span and the verdict call with zero cached
+tokens after it.
+
+## Step 4. The fix
+
+One line in `.github/workflows/review.yml`: `PI_CACHE_RETENTION: long`. pi-ai
+then asks for the one-hour cache. Re-run the pull request. The verdict call
+reads the cache again. The run is not faster; the tests still take their
+time. The second full price is gone. The other fix is to run the tests before
+the first model call.
 
 ## What you learned
 
@@ -99,5 +101,5 @@ It is only visible in the trace.
   environment, or every run looks the same.
 - Flue and other OpenTelemetry frameworks need an exporter prompt, not an
   "add the SDK" prompt.
-- Cost regressions in fan-out agents scale with the input, and every fresh
-  subagent conversation is uncached. Compare runs, not single spans.
+- A prompt cache has a lifetime. A tool call that outlives it makes the next
+  model call pay full price. The comment does not show it. The trace does.

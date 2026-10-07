@@ -1,9 +1,12 @@
 # pr-reviewer
 
 A flue agent that reviews a unified diff. A lead agent loads the diff,
-delegates one task each to a correctness-reviewer and a style-reviewer, then
-synthesizes the two passes into a single Markdown review (a one-line verdict
-followed by findings ordered by severity) and posts it once. Model: Claude
+delegates one task each to a correctness-reviewer and a style-reviewer, runs
+the tests the diff touches with `run_tests`, then synthesizes the two passes
+into a single Markdown review (a one-line verdict followed by findings ordered
+by severity) and posts it once. `fixtures/demo-pr` is the small store codebase
+the demo pull requests change; its integration tests wait on purpose so a
+`run_tests` call can outlive a five-minute prompt cache. Model: Claude
 Sonnet 5 through OpenRouter; pi-ai reads `OPENROUTER_API_KEY`.
 
 ## Run it locally
@@ -13,8 +16,7 @@ OPENROUTER_API_KEY=... npm install
 OPENROUTER_API_KEY=... npm run demo
 ```
 
-`npm run demo` reviews `fixtures/sample.diff`, `npm run demo:large` reviews
-`fixtures/large.diff` (eleven changed files). `npm run demo:fix` reviews
+`npm run demo` reviews `fixtures/sample.diff` and `npm run demo:fix` reviews
 `fixtures/fix.diff`. Without `POST_TO_GITHUB=true` set, the review is written
 to `review.md` instead of posted to a pull request.
 
@@ -44,9 +46,13 @@ root, copy the workflow, and remove the `paths` filter and the
 ## Sentry
 
 Set `SENTRY_DSN` (locally in `.env`, in CI as the `SENTRY_DSN` repository
-secret) to send traces and logs to Sentry. One run produces a trace with a
-root span for the lead agent, a chat span per lead model turn, a tool span
-per `read_diff`/`post_review` call, and two subagent spans (one for
+secret) to send traces to Sentry. One run produces a trace with a root span
+for the lead agent, a chat span per lead model turn, a tool span per
+`read_diff`, `read_file`, `run_tests`, and `post_review` call, and two
+subagent spans (one for
 `correctness-reviewer`, one for `style-reviewer`) with their own chat and
 tool spans nested underneath. `environment` is `github-actions` in CI and
 `local` otherwise; `release` is the workflow's `GITHUB_SHA`.
+
+pi-ai caches the prompt prefix with Anthropic's default five-minute lifetime.
+Set `PI_CACHE_RETENTION=long` to ask for the one-hour lifetime.

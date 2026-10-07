@@ -6,7 +6,7 @@ import { pointsFor } from './loyalty.ts';
 import { canRefund } from './refund-window.ts';
 
 const DAY_MS = 86_400_000;
-const settle = () => new Promise((r) => setTimeout(r, 60_000));
+const settle = () => new Promise((r) => setTimeout(r, 80_000));
 
 describe('checkout flow', () => {
   it('applies loyalty points across a multi-item cart', async () => {
