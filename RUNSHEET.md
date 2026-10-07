@@ -141,7 +141,11 @@ applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 - **Sentry UI.** The trace waterfall with the long `run_tests` span. Explore
   > Spans, `gen_ai.operation.name:chat` with the input, cached, and cache
   write columns, sorted by start time. Then the same pull request after the
-  fix. Numbers: to measure on the rerun before the workshop.
+  fix. Numbers measured 2026-10-07 on PR 23 (six tests at 80 s):
+  before the fix (trace dd3f909fe82b4f58ba215cb2d0cd04f6) `run_tests` ran
+  481 s and the verdict call read 0 cached tokens, wrote 5,412; after the fix
+  (trace dee7242b) the verdict call read 4,991 cached, wrote 68. Repeat the
+  pair before the workshop so the traces are inside the retention window.
 - **Takeaway.** Short-lived process: ask for flush, release, environment.
   OpenTelemetry frameworks need an exporter prompt. A prompt cache has a
   lifetime; a tool call that outlives it makes the next call pay full price.
