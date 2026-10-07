@@ -2,7 +2,7 @@
 
 One block per lab. Each block has the same five parts: outcome, prompt to
 show, code to show, Sentry UI to show, takeaway. Full prompts are in
-[PROMPTS.md](PROMPTS.md). Finished code is in `solutions/<lab>/instrumentation.patch`,
+Finished code is in `solutions/<lab>/instrumentation.patch`,
 applied with `scripts/solution.sh <app>`. Time on the day: 55 minutes.
 
 ## Lab 0. Setup (before the day, 15 minutes, self-serve)
