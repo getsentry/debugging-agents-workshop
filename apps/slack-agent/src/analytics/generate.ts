@@ -1,8 +1,8 @@
 // The deterministic generator behind the Lighthouse analytics warehouse.
 // Every number below comes from a seeded PRNG, so the same endDate always
 // produces the same rows: `npm run db:seed` reruns this and reloads
-// Postgres, and a presenter who reseeds on the workshop day gets the same
-// story, just shifted to end on that day. No Sentry, no pg, no I/O here.
+// Postgres, and a later reseed gets the same story, shifted to end on
+// the day of the reseed. No Sentry, no pg, no I/O here.
 
 const RANGE_DAYS = 90;
 const SEED = 1337424242;

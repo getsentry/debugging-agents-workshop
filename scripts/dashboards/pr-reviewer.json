@@ -1,0 +1,409 @@
+{
+  "environment": [],
+  "filters": {},
+  "period": "7d",
+  "projects": [
+    -1
+  ],
+  "title": "CI reviewer: cost per pull request",
+  "widgets": [
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 0,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "count_unique(trace)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "count_unique(trace)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Review runs",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 1,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "sum(gen_ai.cost.total_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Spend, USD",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 2,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "equation|sum(gen_ai.cost.total_tokens) / count_unique(trace)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "equation|sum(gen_ai.cost.total_tokens) / count_unique(trace)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Spend per run, USD",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 3,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}} has:gen_ai.usage.input_tokens",
+          "fieldAliases": [],
+          "fields": [
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Cache hit rate, %",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 2,
+        "x": 4,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "max(span.duration)"
+          ],
+          "columns": [],
+          "conditions": "span.op:gen_ai.execute_tool project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "max(span.duration)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Longest tool call, ms",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "table",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "limit": 10,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [
+            "github.pr",
+            "github.repository"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "PR",
+            "repository",
+            "spend USD",
+            "model calls",
+            "cached %"
+          ],
+          "fields": [
+            "github.pr",
+            "github.repository",
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": "-sum(gen_ai.cost.total_tokens)"
+        }
+      ],
+      "thresholds": null,
+      "title": "Cost per pull request",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "table",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      },
+      "limit": 10,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [
+            "trace",
+            "release"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "trace",
+            "release",
+            "spend USD",
+            "model calls",
+            "cached %"
+          ],
+          "fields": [
+            "trace",
+            "release",
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": "-sum(gen_ai.cost.total_tokens)"
+        }
+      ],
+      "thresholds": null,
+      "title": "Cost per review run",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "table",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 0,
+        "y": 3
+      },
+      "limit": 10,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "avg(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [
+            "gen_ai.agent.name"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "agent",
+            "spend USD",
+            "model calls",
+            "input tokens per call"
+          ],
+          "fields": [
+            "gen_ai.agent.name",
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "avg(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": "-sum(gen_ai.cost.total_tokens)"
+        }
+      ],
+      "thresholds": null,
+      "title": "Spend by agent",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "table",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 3,
+        "y": 3
+      },
+      "limit": 10,
+      "queries": [
+        {
+          "aggregates": [
+            "max(span.duration)",
+            "p95(span.duration)",
+            "count()"
+          ],
+          "columns": [
+            "gen_ai.tool.name"
+          ],
+          "conditions": "span.op:gen_ai.execute_tool project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "tool",
+            "longest ms",
+            "p95 ms",
+            "calls"
+          ],
+          "fields": [
+            "gen_ai.tool.name",
+            "max(span.duration)",
+            "p95(span.duration)",
+            "count()"
+          ],
+          "name": "",
+          "orderby": "-max(span.duration)"
+        }
+      ],
+      "thresholds": null,
+      "title": "Time in tools",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "line",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 0,
+        "y": 5
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.usage.cache_read.input_tokens)",
+            "sum(gen_ai.usage.input_tokens.cache_write)",
+            "sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "read",
+            "write",
+            "input"
+          ],
+          "fields": [
+            "sum(gen_ai.usage.cache_read.input_tokens)",
+            "sum(gen_ai.usage.input_tokens.cache_write)",
+            "sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Cache reads and writes, tokens",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "line",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 3,
+        "y": 5
+      },
+      "limit": 5,
+      "queries": [
+        {
+          "aggregates": [
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [
+            "release"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "",
+            "cached %"
+          ],
+          "fields": [
+            "release",
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Cache hit rate by release, %",
+      "widgetType": "spans"
+    }
+  ]
+}

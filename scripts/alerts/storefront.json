@@ -1,0 +1,104 @@
+{
+  "workflowName": "Storefront agent alerts",
+  "detectors": [
+    {
+      "name": "Refund tool failures",
+      "type": "metric_issue",
+      "config": { "detectionType": "static" },
+      "owner": null,
+      "dataSources": [
+        {
+          "type": "snuba_query_subscription",
+          "dataset": "events_analytics_platform",
+          "eventTypes": ["trace_item_span"],
+          "query": "span.op:gen_ai.execute_tool gen_ai.tool.name:refundOrder span.status:error",
+          "aggregate": "count()",
+          "timeWindow": 600,
+          "environment": null
+        }
+      ],
+      "conditionGroup": {
+        "logicType": "any",
+        "conditions": [
+          { "type": "gt", "comparison": 3, "conditionResult": 75 },
+          { "type": "lte", "comparison": 3, "conditionResult": 0 }
+        ]
+      }
+    },
+    {
+      "name": "Model call failure rate",
+      "type": "metric_issue",
+      "config": { "detectionType": "static" },
+      "owner": null,
+      "dataSources": [
+        {
+          "type": "snuba_query_subscription",
+          "dataset": "events_analytics_platform",
+          "eventTypes": ["trace_item_span"],
+          "query": "span.op:gen_ai.generate_content",
+          "aggregate": "failure_rate()",
+          "timeWindow": 300,
+          "environment": null
+        }
+      ],
+      "conditionGroup": {
+        "logicType": "any",
+        "conditions": [
+          { "type": "gt", "comparison": 0.1, "conditionResult": 75 },
+          { "type": "lte", "comparison": 0.1, "conditionResult": 0 }
+        ]
+      }
+    },
+    {
+      "name": "Slow agent turns",
+      "type": "metric_issue",
+      "config": { "detectionType": "static" },
+      "owner": null,
+      "dataSources": [
+        {
+          "type": "snuba_query_subscription",
+          "dataset": "events_analytics_platform",
+          "eventTypes": ["trace_item_span"],
+          "query": "span.op:gen_ai.invoke_agent",
+          "aggregate": "p95(span.duration)",
+          "timeWindow": 600,
+          "environment": null
+        }
+      ],
+      "conditionGroup": {
+        "logicType": "any",
+        "conditions": [
+          { "type": "gt", "comparison": 15000, "conditionResult": 75 },
+          { "type": "lte", "comparison": 15000, "conditionResult": 0 }
+        ]
+      }
+    },
+    {
+      "name": "Token spend spike",
+      "type": "metric_issue",
+      "config": { "detectionType": "dynamic" },
+      "owner": null,
+      "dataSources": [
+        {
+          "type": "snuba_query_subscription",
+          "dataset": "events_analytics_platform",
+          "eventTypes": ["trace_item_span"],
+          "query": "span.op:gen_ai.generate_content",
+          "aggregate": "sum(gen_ai.usage.input_tokens)",
+          "timeWindow": 3600,
+          "environment": null
+        }
+      ],
+      "conditionGroup": {
+        "logicType": "any",
+        "conditions": [
+          {
+            "type": "anomaly_detection",
+            "comparison": { "sensitivity": "medium", "seasonality": "auto", "thresholdType": 0 },
+            "conditionResult": 75
+          }
+        ]
+      }
+    }
+  ]
+}

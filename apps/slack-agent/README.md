@@ -49,7 +49,7 @@ which need the prompt or the reply to be useful.
    into `.env.local`.
 6. `npm install`
 7. `npm run db:seed`. The warehouse ends on the day you seed, so run this
-   again on the workshop day.
+   again when the data gets stale.
 8. `npm run dev`
 9. DM the bot: "How did signups do last week compared with the week before?"
 
@@ -89,9 +89,8 @@ compiles TypeScript itself, such as tsx, skips that hook and shows no db
 spans. The Sentry user is the Slack user who sent the message. Errors go to
 Sentry as issues.
 
-## Regression
-
-`regressions/drop-prompt-cache.patch` removes the cache breakpoint from the
-system prompt, so Anthropic caches nothing and cached input tokens fall to
-zero on every turn. Apply from the repository root with
-`git apply apps/slack-agent/regressions/drop-prompt-cache.patch`.
+The system prompt and the tool definitions carry an Anthropic cache
+breakpoint (`PROMPT_CACHE_OPTIONS` in `src/agent.ts`), so the second and
+later model calls of a turn read the prefix from the cache. The
+`gen_ai.usage.cache_read.input_tokens` attribute on each model call shows
+it, and the dashboard's cache hit rate tiles add it up.

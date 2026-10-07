@@ -36,12 +36,12 @@ npm run db:seed
 
 echo "==> Checking for OPENROUTER_API_KEY"
 if ! grep -q '^OPENROUTER_API_KEY=.\+' .env.local 2>/dev/null; then
-  read -r -p "Enter the OpenRouter API key from the presenter: " OPENROUTER_KEY
+  read -r -p "Enter your OpenRouter API key: " OPENROUTER_KEY
   echo "OPENROUTER_API_KEY=${OPENROUTER_KEY}" >>.env.local
 else
   echo "==> OPENROUTER_API_KEY already set, skipping"
 fi
 
-echo "==> SENTRY_DSN is not needed yet; the labs add it later"
+echo "==> To send traces to Sentry, set SENTRY_DSN and NEXT_PUBLIC_SENTRY_DSN in apps/storefront/.env.local"
 
 echo "==> Setup complete. Next: npm run dev"

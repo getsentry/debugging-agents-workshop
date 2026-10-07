@@ -1,0 +1,381 @@
+{
+  "environment": [],
+  "filters": {},
+  "period": "7d",
+  "projects": [
+    -1
+  ],
+  "title": "Store: customer conversations",
+  "widgets": [
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 0,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "failure_count()"
+          ],
+          "columns": [],
+          "conditions": "span.op:gen_ai.execute_tool project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "failure_count()"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Tool failures",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 1,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "count_unique(gen_ai.conversation.id)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "count_unique(gen_ai.conversation.id)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Conversations",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 2,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "sum(gen_ai.cost.total_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Model spend, USD",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 1,
+        "x": 3,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client has:gen_ai.usage.input_tokens project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Cache hit rate, %",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "big_number",
+      "interval": "5m",
+      "layout": {
+        "h": 1,
+        "minH": 1,
+        "w": 2,
+        "x": 4,
+        "y": 0
+      },
+      "limit": null,
+      "queries": [
+        {
+          "aggregates": [
+            "p95(span.duration)"
+          ],
+          "columns": [],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "p95(span.duration)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Model latency p95, ms",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "table",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "limit": 10,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [
+            "gen_ai.conversation.id",
+            "user.id",
+            "user.email"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client has:gen_ai.conversation.id project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "conversation",
+            "customer id",
+            "email",
+            "spend USD",
+            "model calls",
+            "input tokens"
+          ],
+          "fields": [
+            "gen_ai.conversation.id",
+            "user.id",
+            "user.email",
+            "sum(gen_ai.cost.total_tokens)",
+            "count()",
+            "sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": "-sum(gen_ai.cost.total_tokens)"
+        }
+      ],
+      "thresholds": null,
+      "title": "Most expensive customer conversations",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "table",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 2,
+        "x": 4,
+        "y": 1
+      },
+      "limit": 10,
+      "queries": [
+        {
+          "aggregates": [
+            "count()",
+            "failure_count()",
+            "p95(span.duration)"
+          ],
+          "columns": [
+            "gen_ai.tool.name"
+          ],
+          "conditions": "span.op:gen_ai.execute_tool project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "gen_ai.tool.name",
+            "count()",
+            "failure_count()",
+            "p95(span.duration)"
+          ],
+          "name": "",
+          "orderby": "-failure_count()"
+        }
+      ],
+      "thresholds": null,
+      "title": "Tool calls and failures",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "line",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 0,
+        "y": 3
+      },
+      "limit": 5,
+      "queries": [
+        {
+          "aggregates": [
+            "p95(span.duration)"
+          ],
+          "columns": [
+            "gen_ai.request.model"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "gen_ai.request.model",
+            "p95(span.duration)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Model latency p95 by model, ms",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "line",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 3,
+        "y": 3
+      },
+      "limit": 5,
+      "queries": [
+        {
+          "aggregates": [
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "columns": [
+            "release"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [
+            "",
+            "cached %"
+          ],
+          "fields": [
+            "release",
+            "equation|100 * sum(gen_ai.usage.cache_read.input_tokens) / sum(gen_ai.usage.input_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Cache hit rate by release, %",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "bar",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 0,
+        "y": 5
+      },
+      "limit": 5,
+      "queries": [
+        {
+          "aggregates": [
+            "sum(gen_ai.cost.total_tokens)"
+          ],
+          "columns": [
+            "release"
+          ],
+          "conditions": "gen_ai.operation.type:ai_client project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "release",
+            "sum(gen_ai.cost.total_tokens)"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Spend by release, USD",
+      "widgetType": "spans"
+    },
+    {
+      "displayType": "bar",
+      "interval": "5m",
+      "layout": {
+        "h": 2,
+        "minH": 2,
+        "w": 3,
+        "x": 3,
+        "y": 5
+      },
+      "limit": 5,
+      "queries": [
+        {
+          "aggregates": [
+            "failure_count()"
+          ],
+          "columns": [
+            "gen_ai.tool.name"
+          ],
+          "conditions": "span.op:gen_ai.execute_tool project.id:{{PROJECT_ID}}",
+          "fieldAliases": [],
+          "fields": [
+            "gen_ai.tool.name",
+            "failure_count()"
+          ],
+          "name": "",
+          "orderby": ""
+        }
+      ],
+      "thresholds": null,
+      "title": "Tool failures over time",
+      "widgetType": "spans"
+    }
+  ]
+}

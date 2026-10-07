@@ -1,7 +1,7 @@
 # Acme Store — AI Shopping Assistant
 
-A storefront with an AI shopping assistant embedded in it: the workshop's
-starting point, before any of the instrumentation the labs add.
+A storefront with an AI shopping assistant embedded in it, instrumented with
+Sentry agent tracing.
 
 Built on the [Next.js Commerce](https://github.com/vercel/commerce) template
 (MIT © Vercel, Inc. — see `license.md`), keeping its storefront UI intact.
@@ -24,8 +24,8 @@ Built on the [Next.js Commerce](https://github.com/vercel/commerce) template
 - **The planted bug** — `refundOrder` calls `selectPayment` in
   `lib/db/index.ts`, which throws for orders placed before the payments
   system launched in June 2026: those orders have no row in the `payments`
-  table, because the backfill never ran. Debug it with tracing in
-  `../../labs/03-debug-refund.md`.
+  table, because the backfill never ran. The debug prompt in
+  `../../PROMPTS.md` finds it from the trace.
 
 ## Setup
 
@@ -55,4 +55,16 @@ Then click the sparkles button (bottom right) and try "Find me a hoodie",
 "Where is my order?", "Refund my last order", or "Refund order 1029" (the
 planted bug above).
 
-See `../../labs/` for the rest of the workshop.
+
+## Sentry
+
+Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` in `.env.local`. One chat turn
+becomes one trace: the `POST /api/chat` request as the root span, the Vercel
+AI SDK model call and its tool calls as `gen_ai` spans with inputs, outputs,
+and token counts, and a `db` span for each Postgres query.
+`sentry.server.config.ts` turns on agent tracing and the `pg` integration.
+`app/api/chat/route.ts` sets the demo user and the conversation id from the
+request body, so the Agents view groups turns by conversation.
+`instrumentation-client.ts` sets the same user in the browser and records a
+session replay with the shopper's name and email masked, so a failed turn
+links to what the shopper saw.

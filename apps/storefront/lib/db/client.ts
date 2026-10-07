@@ -11,8 +11,8 @@ if (!connectionString) {
   );
 }
 
-// Plain node-postgres driver, not @neondatabase/serverless: a later lab adds
-// database instrumentation that only supports `pg`.
+// Plain node-postgres driver, not @neondatabase/serverless: Sentry's
+// database instrumentation only supports `pg`.
 const pool = new Pool({ connectionString });
 
 export const db = drizzle(pool, { schema });
