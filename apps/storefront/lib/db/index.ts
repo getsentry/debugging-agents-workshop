@@ -196,14 +196,14 @@ export async function selectOrder(
 }
 
 // Orders placed before the payments launch have no payment row.
-export async function selectPayment(orderId: string): Promise<Payment> {
+export async function selectPayment(orderId: string): Promise<Payment | undefined> {
   const [row] = await db
     .select()
     .from(payments)
     .where(eq(payments.orderId, orderId))
     .limit(1);
 
-  return row as Payment;
+  return row;
 }
 
 export async function selectOrders(
