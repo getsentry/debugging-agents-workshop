@@ -158,6 +158,12 @@ export function createTools(customerId: string, _conversationId?: string) {
         }
 
         const payment = await db.selectPayment(orderId);
+        if (!payment) {
+          return {
+            refunded: false as const,
+            reason: `No payment record found for order ${orderId}`,
+          };
+        }
         const refund = await issueRefund({
           chargeId: payment.chargeId,
           amount: order.total.amount,
