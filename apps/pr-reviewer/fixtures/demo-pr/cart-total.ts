@@ -1,7 +1,10 @@
 import { applyDiscount } from './discount.ts';
 import { shippingCost } from './shipping.ts';
 
-export function cartTotal(items: { price: number; qty: number }[]): number {
+export function cartTotal(
+  items: { price: number; qty: number }[],
+  discountPercent = 0,
+): number {
   let total = 0;
   for (let i = 0; i < items.length; i++) {
     if (items[i].qty < 0) {
@@ -9,7 +12,7 @@ export function cartTotal(items: { price: number; qty: number }[]): number {
     }
     total += items[i].price * items[i].qty;
   }
-  return total;
+  return applyDiscount(total, discountPercent);
 }
 
 export type Cart = {
@@ -25,7 +28,7 @@ function roundCents(amount: number): number {
 }
 
 export function checkoutTotal(cart: Cart): number {
-  const subtotal = cartTotal(cart.items);
+  const subtotal = cartTotal(cart.items, cart.discount?.percent);
   const shipping = shippingCost(cart.weightKg, cart.express);
   const freeShipping = subtotal >= 100;
   const shippingCharge = freeShipping ? 0 : shipping;
