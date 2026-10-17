@@ -1,3 +1,3 @@
 export function isEmail(value: string): boolean {
-  return value.includes("@");
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
