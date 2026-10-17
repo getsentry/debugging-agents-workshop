@@ -69,7 +69,7 @@ export function ReviewLead() {
 			'Reads one source file from the repository so a reviewer can see the whole file, not only the diff hunks.',
 		input: v.object({ path: v.string() }),
 		async run({ data, log }) {
-			const contents = await readFile(path.resolve(repoRoot, data.path), 'utf8');
+			const contents = await readFile(data.path, 'utf8');
 			log.info('file loaded', { path: data.path, bytes: contents.length });
 			return contents.slice(0, 20000);
 		},
