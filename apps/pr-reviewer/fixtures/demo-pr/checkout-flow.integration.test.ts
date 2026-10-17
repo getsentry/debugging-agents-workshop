@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { cartTotal } from './cart-total.ts';
 import { pointsFor } from './loyalty.ts';
 import { canRefund } from './refund-window.ts';
+import { shippingCost } from './shipping.ts';
 
 const DAY_MS = 86_400_000;
 const settle = () => new Promise((r) => setTimeout(r, 80_000));
@@ -48,6 +49,12 @@ describe('checkout flow', () => {
       { price: 1, qty: 1 },
     ]);
     expect(pointsFor(total)).toBe(3);
+    await settle();
+  });
+
+  it('charges the heavy rate for a 5 kg parcel', async () => {
+    expect(shippingCost(5)).toBe(12);
+    expect(shippingCost(5, true)).toBe(24);
     await settle();
   });
 });
