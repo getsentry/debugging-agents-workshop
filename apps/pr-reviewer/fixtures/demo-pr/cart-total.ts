@@ -20,6 +20,8 @@ export type Cart = {
   discount?: { code: string; percent: number };
 };
 
+const FREE_SHIPPING_THRESHOLD = 100;
+
 function roundCents(amount: number): number {
   return Math.round(amount * 100) / 100;
 }
@@ -27,7 +29,7 @@ function roundCents(amount: number): number {
 export function checkoutTotal(cart: Cart): number {
   const subtotal = cartTotal(cart.items);
   const shipping = shippingCost(cart.weightKg, cart.express);
-  const freeShipping = subtotal >= 100;
+  const freeShipping = subtotal >= FREE_SHIPPING_THRESHOLD && !cart.express;
   const shippingCharge = freeShipping ? 0 : shipping;
   const taxable = subtotal + shippingCharge;
   const tax = roundCents(taxable * cart.taxRate);

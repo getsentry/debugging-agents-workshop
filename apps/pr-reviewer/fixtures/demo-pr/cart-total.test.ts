@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cartTotal } from './cart-total.ts';
+import { cartTotal, checkoutTotal } from './cart-total.ts';
 
 describe('cartTotal', () => {
   it('returns 0 for an empty cart', () => {
@@ -62,5 +62,17 @@ describe('cartTotal', () => {
 
   it('handles large quantities', () => {
     expect(cartTotal([{ price: 3, qty: 1_000_000 }])).toBe(3_000_000);
+  });
+});
+
+describe('checkoutTotal', () => {
+  it('ships standard orders over the threshold for free', () => {
+    expect(checkoutTotal({ items: [{ price: 60, qty: 2 }], weightKg: 1, taxRate: 0 })).toBe(120);
+  });
+
+  it('still charges for express shipping over the threshold', () => {
+    expect(
+      checkoutTotal({ items: [{ price: 60, qty: 2 }], weightKg: 1, express: true, taxRate: 0 }),
+    ).toBe(132);
   });
 });
