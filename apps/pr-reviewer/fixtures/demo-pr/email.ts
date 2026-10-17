@@ -1,3 +1,7 @@
+export function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 export function isEmail(value: string): boolean {
-  return value.includes("@");
+  return normalizeEmail(value).includes("@");
 }
