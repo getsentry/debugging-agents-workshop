@@ -41,4 +41,8 @@ describe('pointsFor', () => {
   it('returns a whole number', () => {
     expect(Number.isInteger(pointsFor(777))).toBe(true);
   });
+
+  it('awards nothing for a refund', () => {
+    expect(pointsFor(-10_000)).toBe(0);
+  });
 });
