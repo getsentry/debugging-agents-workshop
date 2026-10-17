@@ -1,3 +1,4 @@
 export function nextOrderId(last: string): string {
-  return String(parseInt(last) + 1);
+  const next = parseInt(last, 10) + 1;
+  return String(next).padStart(last.length, "0");
 }
