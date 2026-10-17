@@ -1,3 +1,6 @@
 export function nextOrderId(last: string): string {
-  return String(parseInt(last) + 1);
+  if (!/^\d+$/.test(last)) {
+    throw new RangeError(`Order id is not numeric: ${last}`);
+  }
+  return String(Number(last) + 1);
 }
