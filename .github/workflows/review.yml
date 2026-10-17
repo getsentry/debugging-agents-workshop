@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  review:
+  review-agent:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
