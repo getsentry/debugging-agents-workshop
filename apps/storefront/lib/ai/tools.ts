@@ -158,6 +158,14 @@ export function createTools(customerId: string, _conversationId?: string) {
         }
 
         const payment = await db.selectPayment(orderId);
+        if (!payment) {
+          // Orders placed before the payments launch have no payment row.
+          return {
+            refunded: false as const,
+            reason: `Order ${orderId} has no payment on record to refund`,
+          };
+        }
+
         const refund = await issueRefund({
           chargeId: payment.chargeId,
           amount: order.total.amount,
